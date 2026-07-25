@@ -7,11 +7,16 @@ var SUPABASE_URL = "https://rfsgpqmddgtuxhkqaeau.supabase.co";
 var SUPABASE_KEY = "sb_publishable_Z2hMA2ZiwUD3NgVMfLBOPQ_Mqx-vCOC";
 
 var REST_URL = SUPABASE_URL + "/rest/v1/products";
+var KV_URL = SUPABASE_URL + "/rest/v1/kv_store";
 var HEADERS = {
   apikey: SUPABASE_KEY,
   Authorization: "Bearer " + SUPABASE_KEY,
   "Content-Type": "application/json",
 };
+
+function isProductKey(key) {
+  return key.indexOf("product:") === 0;
+}
 
 function toRow(p) {
   return {
@@ -66,6 +71,17 @@ function makeSupabaseBackend() {
 
     get: function (key, shared) {
       if (shared === undefined) shared = true;
+      if (!isProductKey(key)) {
+        return fetch(KV_URL + "?key=eq." + encodeURIComponent(key) + "&select=value", { headers: HEADERS })
+          .then(function (res) {
+            if (!res.ok) throw new Error("get failed: " + res.status);
+            return res.json();
+          })
+          .then(function (rows) {
+            if (!rows.length) throw new Error("not found");
+            return { key: key, value: rows[0].value, shared: shared };
+          });
+      }
       var id = key.replace(/^product:/, "");
       return fetch(REST_URL + "?id=eq." + encodeURIComponent(id) + "&select=*", { headers: HEADERS })
         .then(function (res) {
@@ -80,6 +96,20 @@ function makeSupabaseBackend() {
 
     set: function (key, value, shared) {
       if (shared === undefined) shared = true;
+      if (!isProductKey(key)) {
+        return fetch(KV_URL + "?on_conflict=key", {
+          method: "POST",
+          headers: Object.assign({}, HEADERS, { Prefer: "resolution=merge-duplicates,return=representation" }),
+          body: JSON.stringify([{ key: key, value: value }]),
+        }).then(function (res) {
+          if (!res.ok) {
+            return res.text().then(function (text) {
+              throw new Error("set failed: " + res.status + " " + text);
+            });
+          }
+          return { key: key, value: value, shared: shared };
+        });
+      }
       var product = JSON.parse(value);
       var row = toRow(product);
       return fetch(REST_URL + "?on_conflict=id", {
