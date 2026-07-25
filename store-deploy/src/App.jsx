@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
   Globe,
   ChevronLeft,
@@ -315,16 +315,26 @@ function FitGauge({ product, t }) {
   );
 }
 
-function HomeScreen({ t, setScreen, setActiveCategory, setActiveSeason, goAdmin }) {
+const DEFAULT_HOME_IMAGES = {
+  hero: "https://picsum.photos/seed/hero-collection/800/600",
+  dresses: "https://picsum.photos/seed/cat-dresses/300/300",
+  scarves: "https://picsum.photos/seed/cat-scarves/300/300",
+  namaznik: "https://picsum.photos/seed/cat-namaznik/300/300",
+  bannerWinter: "https://picsum.photos/seed/banner-winter/400/300",
+  bannerSummer: "https://picsum.photos/seed/banner-summer/400/300",
+};
+
+function HomeScreen({ t, setScreen, setActiveCategory, setActiveSeason, goAdmin, homeImages }) {
+  const imgs = { ...DEFAULT_HOME_IMAGES, ...(homeImages || {}) };
   const cats = [
-    { key: "dresses", label: t.dresses, seed: "cat-dresses" },
-    { key: "scarves", label: t.scarves, seed: "cat-scarves" },
-    { key: "namaznik", label: t.namaznik, seed: "cat-namaznik" },
+    { key: "dresses", label: t.dresses, img: imgs.dresses },
+    { key: "scarves", label: t.scarves, img: imgs.scarves },
+    { key: "namaznik", label: t.namaznik, img: imgs.namaznik },
   ];
   return (
     <div className="pb-24">
       <div className="relative h-56 flex items-end p-5" style={{
-        backgroundImage: `linear-gradient(180deg, rgba(58,36,50,0.15), rgba(58,36,50,0.85)), url(https://picsum.photos/seed/hero-collection/800/600)`,
+        backgroundImage: `linear-gradient(180deg, rgba(58,36,50,0.15), rgba(58,36,50,0.85)), url(${imgs.hero})`,
         backgroundSize: "cover", backgroundPosition: "center",
       }}>
         <div>
@@ -337,7 +347,7 @@ function HomeScreen({ t, setScreen, setActiveCategory, setActiveSeason, goAdmin 
         <div className="grid grid-cols-3 gap-3">
           {cats.map((c) => (
             <button key={c.key} onClick={() => { setActiveCategory(c.key); setActiveSeason("all"); setScreen("category"); }} className="flex flex-col items-center gap-2">
-              <div className="w-full aspect-square rounded-2xl bg-cover bg-center border border-[#3A2432]/10" style={{ backgroundImage: `url(https://picsum.photos/seed/${c.seed}/300/300)` }} />
+              <div className="w-full aspect-square rounded-2xl bg-cover bg-center border border-[#3A2432]/10" style={{ backgroundImage: `url(${c.img})` }} />
               <span className="text-xs font-medium" style={{ color: CHARCOAL }}>{c.label}</span>
             </button>
           ))}
@@ -346,13 +356,13 @@ function HomeScreen({ t, setScreen, setActiveCategory, setActiveSeason, goAdmin 
       <div className="px-4 mt-6">
         <div className="flex gap-3">
           <button onClick={() => { setActiveCategory("dresses"); setActiveSeason("winter"); setScreen("category"); }} className="flex-1 rounded-2xl overflow-hidden relative h-28" style={{
-            backgroundImage: `linear-gradient(180deg, rgba(58,36,50,0.1), rgba(58,36,50,0.75)), url(https://picsum.photos/seed/banner-winter/400/300)`,
+            backgroundImage: `linear-gradient(180deg, rgba(58,36,50,0.1), rgba(58,36,50,0.75)), url(${imgs.bannerWinter})`,
             backgroundSize: "cover", backgroundPosition: "center",
           }}>
             <span className="absolute bottom-2 left-3 text-xs font-medium" style={{ color: IVORY }}>{t.seasonWinter}</span>
           </button>
           <button onClick={() => { setActiveCategory("dresses"); setActiveSeason("summer"); setScreen("category"); }} className="flex-1 rounded-2xl overflow-hidden relative h-28" style={{
-            backgroundImage: `linear-gradient(180deg, rgba(58,36,50,0.1), rgba(58,36,50,0.75)), url(https://picsum.photos/seed/banner-summer/400/300)`,
+            backgroundImage: `linear-gradient(180deg, rgba(58,36,50,0.1), rgba(58,36,50,0.75)), url(${imgs.bannerSummer})`,
             backgroundSize: "cover", backgroundPosition: "center",
           }}>
             <span className="absolute bottom-2 left-3 text-xs font-medium" style={{ color: IVORY }}>{t.seasonSummer}</span>
@@ -397,7 +407,7 @@ function CategoryScreen({ t, products, category, season, setSeason, openProduct,
           {list.map((p) => (
             <button key={p.id} onClick={() => openProduct(p)} className="text-left">
               <div className="w-full aspect-[3/4] rounded-2xl bg-cover bg-center mb-2 border border-[#3A2432]/10" style={{
-                backgroundImage: p.colors?.[0]?.imageUrl ? `url(${p.colors[0].imageUrl})` : undefined,
+                backgroundImage: p.colors?.[0]?.imageUrl ? `url(${p.colors[0].imageUrl})` : (p.colors?.[0]?.hex2 ? `linear-gradient(135deg, ${p.colors[0].hex} 50%, ${p.colors[0].hex2} 50%)` : undefined),
                 backgroundColor: p.colors?.[0]?.hex || "#eee",
               }} />
               <p className="text-sm font-medium leading-snug" style={{ color: CHARCOAL }}>{p.name}</p>
@@ -410,8 +420,82 @@ function CategoryScreen({ t, products, category, season, setSeason, openProduct,
   );
 }
 
+function ImageZoomModal({ src, onClose }) {
+  const [scale, setScale] = useState(1);
+  const [translate, setTranslate] = useState({ x: 0, y: 0 });
+  const lastDistRef = useRef(null);
+  const lastTapRef = useRef(0);
+  const dragRef = useRef(null);
+
+  const getDistance = (touches) => {
+    const dx = touches[0].clientX - touches[1].clientX;
+    const dy = touches[0].clientY - touches[1].clientY;
+    return Math.sqrt(dx * dx + dy * dy);
+  };
+
+  const handleTouchStart = (e) => {
+    if (e.touches.length === 2) {
+      lastDistRef.current = getDistance(e.touches);
+    } else if (e.touches.length === 1) {
+      const now = Date.now();
+      if (now - lastTapRef.current < 300) {
+        setScale((s) => (s > 1 ? 1 : 2.5));
+        setTranslate({ x: 0, y: 0 });
+      }
+      lastTapRef.current = now;
+      dragRef.current = { startX: e.touches[0].clientX, startY: e.touches[0].clientY, origX: translate.x, origY: translate.y };
+    }
+  };
+
+  const handleTouchMove = (e) => {
+    if (e.touches.length === 2 && lastDistRef.current) {
+      const dist = getDistance(e.touches);
+      const delta = dist / lastDistRef.current;
+      setScale((s) => Math.min(4, Math.max(1, s * delta)));
+      lastDistRef.current = dist;
+    } else if (e.touches.length === 1 && dragRef.current && scale > 1) {
+      const dx = e.touches[0].clientX - dragRef.current.startX;
+      const dy = e.touches[0].clientY - dragRef.current.startY;
+      setTranslate({ x: dragRef.current.origX + dx, y: dragRef.current.origY + dy });
+    }
+  };
+
+  const handleTouchEnd = (e) => {
+    if (e.touches.length < 2) lastDistRef.current = null;
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-50 bg-black flex items-center justify-center overflow-hidden"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
+      <button onClick={onClose} className="absolute top-4 right-4 z-10 text-white bg-black/40 rounded-full p-2">
+        <X size={22} />
+      </button>
+      <img
+        src={src}
+        alt=""
+        draggable={false}
+        style={{
+          transform: `translate(${translate.x}px, ${translate.y}px) scale(${scale})`,
+          maxWidth: "100%",
+          maxHeight: "100%",
+          touchAction: "none",
+          userSelect: "none",
+        }}
+      />
+      <p className="absolute bottom-6 left-0 right-0 text-center text-white/50 text-xs">
+        Ущипните или дважды нажмите для увеличения / Pinch or double-tap to zoom
+      </p>
+    </div>
+  );
+}
+
 function ProductScreen({ t, product, setScreen, addToCart }) {
   const [colorIdx, setColorIdx] = useState(0);
+  const [zoomOpen, setZoomOpen] = useState(false);
   const sizes = product.freeSize ? ["freeSize"] : (product.customSizes || "").split(",").map((s) => s.trim()).filter(Boolean);
   const [size, setSize] = useState(sizes[0] || "freeSize");
   const [justAdded, setJustAdded] = useState(false);
@@ -426,9 +510,15 @@ function ProductScreen({ t, product, setScreen, addToCart }) {
   return (
     <div className="pb-28">
       <TopBar title={product.name} onBack={() => setScreen("category")} />
-      <div className="w-full aspect-[4/5] bg-cover bg-center" style={{
-        backgroundImage: color.imageUrl ? `url(${color.imageUrl})` : undefined, backgroundColor: color.hex,
-      }} />
+      <button
+        onClick={() => color.imageUrl && setZoomOpen(true)}
+        className="w-full aspect-[4/5] bg-cover bg-center block"
+        style={{
+          backgroundImage: color.imageUrl ? `url(${color.imageUrl})` : (color.hex2 ? `linear-gradient(135deg, ${color.hex} 50%, ${color.hex2} 50%)` : undefined),
+          backgroundColor: color.hex,
+        }}
+      />
+      {zoomOpen && color.imageUrl && <ImageZoomModal src={color.imageUrl} onClose={() => setZoomOpen(false)} />}
       <div className="px-4 mt-4">
         <div className="flex items-center justify-between">
           <h1 className="font-serif text-xl" style={{ color: CHARCOAL }}>{product.name}</h1>
@@ -440,7 +530,15 @@ function ProductScreen({ t, product, setScreen, addToCart }) {
           <p className="text-xs uppercase tracking-wider mb-2" style={{ color: `${CHARCOAL}80` }}>{t.color}: <span style={{ color: CHARCOAL }}>{color.name}</span></p>
           <div className="flex gap-2">
             {product.colors.map((c, i) => (
-              <button key={c.name + i} onClick={() => setColorIdx(i)} className="w-8 h-8 rounded-full border-2" style={{ backgroundColor: c.hex, borderColor: i === colorIdx ? GOLD : "transparent" }} />
+              <button
+                key={c.name + i}
+                onClick={() => setColorIdx(i)}
+                className="w-8 h-8 rounded-full border-2"
+                style={{
+                  background: c.hex2 ? `linear-gradient(135deg, ${c.hex} 50%, ${c.hex2} 50%)` : c.hex,
+                  borderColor: i === colorIdx ? GOLD : "transparent",
+                }}
+              />
             ))}
           </div>
         </div>
@@ -523,81 +621,136 @@ const CARD_HOLDER_NAME = "Farangiz Bobojonova";
 
 function CheckoutScreen({ t, cart, setScreen, clearCart }) {
   const total = cart.reduce((s, item) => s + Number(item.product.price || 0), 0);
-  const [locationStatus, setLocationStatus] = useState("idle"); // idle | requesting | done | denied
-  const [coords, setCoords] = useState(null);
+  const [deliveryMethod, setDeliveryMethod] = useState("yandex"); // 'yandex' | 'bts'
   const [phone, setPhone] = useState("");
-  const [orderSent, setOrderSent] = useState(false);
-  const canSubmit = locationStatus === "done" && phone.trim().length > 5;
+  const [receiptUrl, setReceiptUrl] = useState("");
+  const [uploadingReceipt, setUploadingReceipt] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  const requestLocation = () => {
-    if (!navigator.geolocation) {
-      setLocationStatus("denied");
-      return;
-    }
-    setLocationStatus("requesting");
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-        setLocationStatus("done");
-      },
-      () => setLocationStatus("denied"),
-      { enableHighAccuracy: true, timeout: 10000 }
-    );
+  const canSubmit = phone.trim().length > 5 && !!receiptUrl && !submitting;
+
+  const handleReceiptChange = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    setUploadingReceipt(true);
+    const path = "receipts/" + Date.now() + "-" + file.name.replace(/[^a-zA-Z0-9._-]/g, "");
+    fetch(STORAGE_BUCKET_URL + "/product-images/" + path, {
+      method: "POST",
+      headers: { apikey: STORAGE_KEY, Authorization: "Bearer " + STORAGE_KEY, "Content-Type": file.type },
+      body: file,
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("upload failed: " + res.status);
+        return res.json();
+      })
+      .then(() => {
+        setReceiptUrl(STORAGE_PUBLIC_URL + "/product-images/" + path);
+        setUploadingReceipt(false);
+      })
+      .catch(() => {
+        setUploadingReceipt(false);
+        window.alert("Не удалось загрузить чек / Receipt upload failed. Попробуйте снова.");
+      });
   };
 
-  const buildOrderMessage = () => {
-    const lines = [];
-    lines.push("Новый заказ / New order:");
-    cart.forEach((item, i) => {
-      lines.push(
-        (i + 1) + ". " + item.product.name + " — " + item.color.name + ", " +
-        (item.size === "freeSize" ? "Free size" : item.size) + " — " + money(item.product.price)
-      );
-    });
-    lines.push("Итого / Total: " + money(total));
-    lines.push("Телефон / Phone: " + phone);
-    if (coords) {
-      lines.push("Локация / Location: https://maps.google.com/?q=" + coords.lat + "," + coords.lng);
-    }
-    lines.push("");
-    lines.push("(Прикрепите чек оплаты в этом чате / Please attach your payment receipt here)");
-    return lines.join("\n");
-  };
+  const buildOrderCode = () => String(Date.now()).slice(-6);
 
-  const handleSendOrder = () => {
-    const message = buildOrderMessage();
-    const url = "https://t.me/" + ADMIN_TELEGRAM_USERNAME + "?text=" + encodeURIComponent(message);
-    window.open(url, "_blank");
-    setOrderSent(true);
-    clearCart();
-    setScreen("confirmation");
+  const handleSendOrder = async () => {
+    const orderCode = buildOrderCode();
+    const payload = {
+      orderCode,
+      total: money(total),
+      phone,
+      deliveryMethod,
+      receiptUrl,
+      items: cart.map((item) => ({
+        name: item.product.name,
+        colorName: item.color.name,
+        size: item.size,
+        priceLabel: money(item.product.price),
+        photoUrl: item.color.imageUrl || "",
+      })),
+    };
+
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/send-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error || "unknown error");
+
+      const locationMsg =
+        "Заказ #" + orderCode + " — пожалуйста, отправьте геометку через 📎 → Локация в этом чате.";
+      window.open("https://t.me/" + ADMIN_TELEGRAM_USERNAME + "?text=" + encodeURIComponent(locationMsg), "_blank");
+
+      clearCart();
+      setScreen("confirmation");
+    } catch (e) {
+      window.alert("Не удалось отправить заказ / Failed to send order. Попробуйте ещё раз или напишите нам напрямую.");
+      console.warn("send-order failed:", e);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
     <div className="pb-28">
       <TopBar title={t.checkout} onBack={() => setScreen("cart")} />
+
       <div className="px-4 mt-4">
         <h2 className="font-serif text-base mb-2" style={{ color: CHARCOAL }}>{t.deliveryTitle}</h2>
-        <p className="text-xs mb-3" style={{ color: `${CHARCOAL}99` }}>{t.deliverySub}</p>
-        <button onClick={requestLocation} className="w-full flex items-center gap-2 py-3 rounded-xl border text-sm mb-3 justify-center" style={{
-          background: locationStatus === "done" ? "rgba(124,140,108,0.1)" : "transparent",
-          borderColor: locationStatus === "done" ? "#7C8C6C" : "rgba(58,36,50,0.2)",
-          color: locationStatus === "done" ? "#5C6B4E" : CHARCOAL,
-        }}>
-          {locationStatus === "done" ? <Check size={16} /> : <MapPin size={16} />}
-          {locationStatus === "done" ? t.locationShared : locationStatus === "requesting" ? "..." : t.shareLocation}
-        </button>
-        {locationStatus === "denied" && (
-          <p className="text-[11px] mb-2" style={{ color: "#9C5F5C" }}>
-            Не удалось получить локацию — разрешите доступ в настройках браузера / Telegram и попробуйте снова.
+
+        <div className="flex gap-2 mb-3">
+          <button
+            onClick={() => setDeliveryMethod("yandex")}
+            className="flex-1 py-2.5 rounded-xl border text-xs font-medium"
+            style={{
+              background: deliveryMethod === "yandex" ? INK : "transparent",
+              color: deliveryMethod === "yandex" ? IVORY : CHARCOAL,
+              borderColor: deliveryMethod === "yandex" ? INK : "rgba(58,36,50,0.2)",
+            }}
+          >
+            Ташкент · Яндекс
+          </button>
+          <button
+            onClick={() => setDeliveryMethod("bts")}
+            className="flex-1 py-2.5 rounded-xl border text-xs font-medium"
+            style={{
+              background: deliveryMethod === "bts" ? INK : "transparent",
+              color: deliveryMethod === "bts" ? IVORY : CHARCOAL,
+              borderColor: deliveryMethod === "bts" ? INK : "rgba(58,36,50,0.2)",
+            }}
+          >
+            Другой регион · BTS
+          </button>
+        </div>
+
+        {deliveryMethod === "yandex" ? (
+          <p className="text-xs leading-relaxed mb-3" style={{ color: `${CHARCOAL}99` }}>
+            Доставка курьером Яндекс. Оплата за доставку — наличными курьеру при получении заказа.
+          </p>
+        ) : (
+          <p className="text-xs leading-relaxed mb-3" style={{ color: `${CHARCOAL}99` }}>
+            Доставка через BTS. Мы уточним ближайший пункт выдачи после получения заказа.
           </p>
         )}
+
         <div className="flex items-center gap-2 border border-[#3A2432]/20 rounded-xl px-3 py-2.5 mb-2">
           <Phone size={16} color={INK} className="opacity-60" />
           <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder={t.phonePlaceholder} className="flex-1 bg-transparent text-sm outline-none" style={{ color: CHARCOAL }} />
         </div>
-        <p className="text-[11px] leading-relaxed" style={{ color: `${CHARCOAL}80` }}>{t.deliveryEstimate}</p>
+
+        <div className="bg-[#3A2432]/[0.04] rounded-xl px-3 py-2.5 flex items-start gap-2">
+          <MapPin size={16} color={GOLD} className="flex-shrink-0 mt-0.5" />
+          <p className="text-[11px] leading-relaxed" style={{ color: `${CHARCOAL}99` }}>
+            После нажатия «{t.placeOrder}» откроется чат с нами — там, пожалуйста, отправьте вашу геометку через <b>📎 → Локация</b> (не ссылку, а именно через встроенную функцию Telegram — так мы сможем сразу передать её в Яндекс или BTS).
+          </p>
+        </div>
       </div>
+
       <div className="px-4 mt-6">
         <h2 className="font-serif text-base mb-2" style={{ color: CHARCOAL }}>{t.paymentTitle}</h2>
         <p className="text-xs mb-3 leading-relaxed" style={{ color: `${CHARCOAL}99` }}>{t.paymentSub}</p>
@@ -606,10 +759,18 @@ function CheckoutScreen({ t, cart, setScreen, clearCart }) {
           <p className="font-mono text-lg tracking-wider" style={{ color: IVORY }}>{CARD_NUMBER_DISPLAY}</p>
           <p className="text-xs mt-1" style={{ color: `${IVORY}90` }}>{CARD_HOLDER_NAME}</p>
         </div>
-        <p className="text-xs leading-relaxed" style={{ color: `${CHARCOAL}99` }}>
-          После оплаты нажмите кнопку ниже — откроется чат с нами в Telegram, куда нужно отправить чек об оплате.
-        </p>
+
+        <label className="w-full flex items-center gap-2 py-3 px-3 rounded-xl border text-sm justify-center cursor-pointer" style={{
+          background: receiptUrl ? "rgba(124,140,108,0.1)" : "transparent",
+          borderColor: receiptUrl ? "#7C8C6C" : "rgba(58,36,50,0.2)",
+          color: receiptUrl ? "#5C6B4E" : CHARCOAL,
+        }}>
+          {receiptUrl ? <Check size={16} /> : <Upload size={16} />}
+          {uploadingReceipt ? "Загрузка..." : receiptUrl ? "Чек загружен" : "Прикрепить чек оплаты (обязательно)"}
+          <input type="file" accept="image/*" onChange={handleReceiptChange} className="hidden" />
+        </label>
       </div>
+
       <div className="fixed bottom-16 inset-x-0 max-w-md mx-auto px-4 py-3 bg-[#F7F2EA]/95 backdrop-blur border-t border-[#3A2432]/10">
         <div className="flex justify-between text-sm mb-2">
           <span style={{ color: `${CHARCOAL}99` }}>{t.total}</span>
@@ -618,8 +779,13 @@ function CheckoutScreen({ t, cart, setScreen, clearCart }) {
         <button disabled={!canSubmit} onClick={handleSendOrder} className="w-full py-3 rounded-full font-medium flex items-center justify-center gap-2" style={{
           background: canSubmit ? GOLD : "rgba(58,36,50,0.15)", color: canSubmit ? "#fff" : "rgba(42,36,32,0.4)",
         }}>
-          <CreditCard size={16} />{t.placeOrder}
+          <CreditCard size={16} />{submitting ? "Отправка..." : t.placeOrder}
         </button>
+        {!canSubmit && (
+          <p className="text-[11px] text-center mt-1.5" style={{ color: "#9C5F5C" }}>
+            Укажите телефон и прикрепите чек, чтобы отправить заказ / Enter phone and attach receipt to send order
+          </p>
+        )}
       </div>
     </div>
   );
@@ -695,21 +861,34 @@ function ColorRow({ color, onChange, onRemove, canRemove }) {
   };
 
   return (
-    <div className="flex items-center gap-2 mb-2">
-      <input type="color" value={color.hex} onChange={(e) => onChange({ ...color, hex: e.target.value })} className="w-9 h-9 rounded-lg border border-black/10 cursor-pointer flex-shrink-0" />
-      <input placeholder="Название цвета" value={color.name} onChange={(e) => onChange({ ...color, name: e.target.value })} className="flex-1 min-w-0 border border-black/15 rounded-lg px-2.5 py-2 text-sm" />
-      <label className="flex-[1.4] min-w-0 border border-black/15 rounded-lg px-2.5 py-2 text-sm flex items-center gap-1.5 cursor-pointer bg-white">
+    <div className="border border-black/10 rounded-xl p-2.5 mb-2">
+      <div className="flex items-center gap-2 mb-2">
+        <input type="color" value={color.hex} onChange={(e) => onChange({ ...color, hex: e.target.value })} className="w-9 h-9 rounded-lg border border-black/10 cursor-pointer flex-shrink-0" />
+        {color.hex2 !== undefined && (
+          <input type="color" value={color.hex2} onChange={(e) => onChange({ ...color, hex2: e.target.value })} className="w-9 h-9 rounded-lg border border-black/10 cursor-pointer flex-shrink-0" />
+        )}
+        <input placeholder="Название цвета" value={color.name} onChange={(e) => onChange({ ...color, name: e.target.value })} className="flex-1 min-w-0 border border-black/15 rounded-lg px-2.5 py-2 text-sm" />
+        {canRemove && <button onClick={onRemove} className="p-1.5 flex-shrink-0"><Trash2 size={16} color="#9C5F5C" /></button>}
+      </div>
+      <label className="flex items-center gap-1.5 text-xs mb-2" style={{ color: `${CHARCOAL}99` }}>
+        <input
+          type="checkbox"
+          checked={color.hex2 !== undefined}
+          onChange={(e) => onChange(e.target.checked ? { ...color, hex2: "#EDE4D3" } : { ...color, hex2: undefined })}
+        />
+        Комбинация из 2 цветов / Two-color combo
+      </label>
+      <label className="w-full border border-black/15 rounded-lg px-2.5 py-2 text-sm flex items-center gap-1.5 cursor-pointer bg-white">
         {color.imageUrl ? (
           <img src={color.imageUrl} alt="" className="w-6 h-6 rounded object-cover flex-shrink-0" />
         ) : (
           <Upload size={14} className="flex-shrink-0 opacity-50" />
         )}
         <span className="truncate text-xs" style={{ color: color.imageUrl ? CHARCOAL : "rgba(0,0,0,0.4)" }}>
-          {uploading ? "Загрузка..." : color.imageUrl ? "Фото загружено" : "Выбрать фото"}
+          {uploading ? "Загрузка..." : color.imageUrl ? "Фото загружено (нажмите, чтобы заменить)" : "Выбрать фото"}
         </span>
         <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
       </label>
-      {canRemove && <button onClick={onRemove} className="p-1.5 flex-shrink-0"><Trash2 size={16} color="#9C5F5C" /></button>}
     </div>
   );
 }
@@ -821,9 +1000,52 @@ function ProductForm({ initial, onCancel, onSaved, showToast }) {
   );
 }
 
-function AdminScreen({ t, products, upsertLocal, removeLocal, goShop, showToast }) {
+function ThemeImageRow({ label, value, onUploaded }) {
+  const [uploading, setUploading] = useState(false);
+
+  const handleFileChange = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    setUploading(true);
+    const path = "site/" + Date.now() + "-" + file.name.replace(/[^a-zA-Z0-9._-]/g, "");
+    fetch(STORAGE_BUCKET_URL + "/product-images/" + path, {
+      method: "POST",
+      headers: { apikey: STORAGE_KEY, Authorization: "Bearer " + STORAGE_KEY, "Content-Type": file.type },
+      body: file,
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("upload failed: " + res.status);
+        return res.json();
+      })
+      .then(() => {
+        onUploaded(STORAGE_PUBLIC_URL + "/product-images/" + path);
+        setUploading(false);
+      })
+      .catch(() => {
+        setUploading(false);
+        window.alert("Не удалось загрузить фото / Photo upload failed.");
+      });
+  };
+
+  return (
+    <div className="flex items-center gap-3 bg-white/70 rounded-2xl p-3 border border-black/5 mb-2">
+      <div className="w-14 h-14 rounded-xl flex-shrink-0 bg-cover bg-center border border-black/10" style={{ backgroundImage: value ? `url(${value})` : undefined, backgroundColor: "#eee" }} />
+      <label className="flex-1 border border-black/15 rounded-lg px-2.5 py-2 text-sm flex items-center gap-1.5 cursor-pointer bg-white">
+        <Upload size={14} className="flex-shrink-0 opacity-50" />
+        <span className="truncate text-xs" style={{ color: CHARCOAL }}>
+          {uploading ? "Загрузка..." : "Изменить фото"}
+        </span>
+        <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
+      </label>
+      <span className="text-xs w-20 flex-shrink-0" style={{ color: `${CHARCOAL}80` }}>{label}</span>
+    </div>
+  );
+}
+
+function AdminScreen({ t, products, upsertLocal, removeLocal, goShop, showToast, homeImages, saveHomeImages }) {
   const [editing, setEditing] = useState(null);
   const [filter, setFilter] = useState("all");
+  const [tab, setTab] = useState("products"); // 'products' | 'theme'
 
   const handleDelete = async (id) => {
     if (!window.confirm("Удалить этот товар?")) return;
@@ -838,6 +1060,15 @@ function AdminScreen({ t, products, upsertLocal, removeLocal, goShop, showToast 
 
   const filtered = products.filter((p) => filter === "all" || p.category === filter);
 
+  const themeSlots = [
+    { key: "hero", label: "Главный баннер / Hero" },
+    { key: "dresses", label: "Платья / Dresses" },
+    { key: "scarves", label: "Платки / Scarves" },
+    { key: "namaznik", label: "Намазники / Namaznik" },
+    { key: "bannerWinter", label: "Баннер осень-зима" },
+    { key: "bannerSummer", label: "Баннер весна-лето" },
+  ];
+
   return (
     <div className="min-h-screen" style={{ background: IVORY }}>
       <div className="sticky top-0 z-10 px-5 py-4 flex items-center justify-between" style={{ background: INK }}>
@@ -845,43 +1076,74 @@ function AdminScreen({ t, products, upsertLocal, removeLocal, goShop, showToast 
           <button onClick={goShop} className="text-xs mb-1 block" style={{ color: `${IVORY}90` }}>{t.backToShop}</button>
           <h1 className="font-serif text-lg" style={{ color: IVORY }}>{t.forOwners}</h1>
         </div>
-        <button onClick={() => setEditing(emptyProduct())} className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium text-white" style={{ background: GOLD }}>
-          <Plus size={16} /> Добавить
-        </button>
-      </div>
-      <div className="flex gap-2 px-5 py-3 overflow-x-auto">
-        {[{ value: "all", label: "Все / All" }, ...CATEGORIES].map((c) => (
-          <button key={c.value} onClick={() => setFilter(c.value)} className="px-3.5 py-1.5 rounded-full text-xs whitespace-nowrap border" style={{
-            background: filter === c.value ? INK : "transparent", color: filter === c.value ? IVORY : CHARCOAL,
-            borderColor: filter === c.value ? INK : "rgba(0,0,0,0.15)",
-          }}>{c.label}</button>
-        ))}
-      </div>
-      <div className="px-5 pb-10">
-        {filtered.length === 0 ? (
-          <div className="flex flex-col items-center text-center py-16">
-            <Package size={32} color={INK} strokeWidth={1.3} className="mb-3 opacity-30" />
-            <p className="text-sm text-black/50">Товаров пока нет</p>
-          </div>
-        ) : (
-          <div className="space-y-2 mt-1">
-            {filtered.map((p) => (
-              <div key={p.id} className="flex items-center gap-3 bg-white/70 rounded-2xl p-3 border border-black/5">
-                <div className="w-14 h-16 rounded-xl flex-shrink-0 bg-cover bg-center border border-black/10" style={{
-                  backgroundImage: p.colors?.[0]?.imageUrl ? `url(${p.colors[0].imageUrl})` : undefined, backgroundColor: p.colors?.[0]?.hex || "#eee",
-                }} />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate" style={{ color: CHARCOAL }}>{p.name}</p>
-                  <p className="text-xs text-black/45">{CATEGORIES.find((c) => c.value === p.category)?.label} · {money(p.price)}</p>
-                  {!p.inStock && <span className="text-[10px] text-white px-1.5 py-0.5 rounded-full" style={{ background: "#9C5F5C" }}>Нет в наличии</span>}
-                </div>
-                <button onClick={() => setEditing(p)} className="p-2"><Edit2 size={16} color={INK} /></button>
-                <button onClick={() => handleDelete(p.id)} className="p-2"><Trash2 size={16} color="#9C5F5C" /></button>
-              </div>
-            ))}
-          </div>
+        {tab === "products" && (
+          <button onClick={() => setEditing(emptyProduct())} className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium text-white" style={{ background: GOLD }}>
+            <Plus size={16} /> Добавить
+          </button>
         )}
       </div>
+
+      <div className="flex gap-2 px-5 py-3">
+        <button onClick={() => setTab("products")} className="px-4 py-1.5 rounded-full text-xs font-medium border" style={{
+          background: tab === "products" ? INK : "transparent", color: tab === "products" ? IVORY : CHARCOAL, borderColor: tab === "products" ? INK : "rgba(0,0,0,0.15)",
+        }}>Товары / Products</button>
+        <button onClick={() => setTab("theme")} className="px-4 py-1.5 rounded-full text-xs font-medium border" style={{
+          background: tab === "theme" ? INK : "transparent", color: tab === "theme" ? IVORY : CHARCOAL, borderColor: tab === "theme" ? INK : "rgba(0,0,0,0.15)",
+        }}>Оформление / Theme</button>
+      </div>
+
+      {tab === "theme" ? (
+        <div className="px-5 pb-10">
+          <p className="text-xs mb-3" style={{ color: `${CHARCOAL}80` }}>
+            Фото на главной странице (баннер, обложки категорий). Изменения появятся сразу после загрузки.
+          </p>
+          {themeSlots.map((slot) => (
+            <ThemeImageRow
+              key={slot.key}
+              label={slot.label}
+              value={homeImages[slot.key]}
+              onUploaded={(url) => saveHomeImages({ ...homeImages, [slot.key]: url })}
+            />
+          ))}
+        </div>
+      ) : (
+        <>
+          <div className="flex gap-2 px-5 pb-3 overflow-x-auto">
+            {[{ value: "all", label: "Все / All" }, ...CATEGORIES].map((c) => (
+              <button key={c.value} onClick={() => setFilter(c.value)} className="px-3.5 py-1.5 rounded-full text-xs whitespace-nowrap border" style={{
+                background: filter === c.value ? INK : "transparent", color: filter === c.value ? IVORY : CHARCOAL,
+                borderColor: filter === c.value ? INK : "rgba(0,0,0,0.15)",
+              }}>{c.label}</button>
+            ))}
+          </div>
+          <div className="px-5 pb-10">
+            {filtered.length === 0 ? (
+              <div className="flex flex-col items-center text-center py-16">
+                <Package size={32} color={INK} strokeWidth={1.3} className="mb-3 opacity-30" />
+                <p className="text-sm text-black/50">Товаров пока нет</p>
+              </div>
+            ) : (
+              <div className="space-y-2 mt-1">
+                {filtered.map((p) => (
+                  <div key={p.id} className="flex items-center gap-3 bg-white/70 rounded-2xl p-3 border border-black/5">
+                    <div className="w-14 h-16 rounded-xl flex-shrink-0 bg-cover bg-center border border-black/10" style={{
+                      backgroundImage: p.colors?.[0]?.imageUrl ? `url(${p.colors[0].imageUrl})` : (p.colors?.[0]?.hex2 ? `linear-gradient(135deg, ${p.colors[0].hex} 50%, ${p.colors[0].hex2} 50%)` : undefined),
+                      backgroundColor: p.colors?.[0]?.hex || "#eee",
+                    }} />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate" style={{ color: CHARCOAL }}>{p.name}</p>
+                      <p className="text-xs text-black/45">{CATEGORIES.find((c) => c.value === p.category)?.label} · {money(p.price)}</p>
+                      {!p.inStock && <span className="text-[10px] text-white px-1.5 py-0.5 rounded-full" style={{ background: "#9C5F5C" }}>Нет в наличии</span>}
+                    </div>
+                    <button onClick={() => setEditing(p)} className="p-2"><Edit2 size={16} color={INK} /></button>
+                    <button onClick={() => handleDelete(p.id)} className="p-2"><Trash2 size={16} color="#9C5F5C" /></button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </>
+      )}
       {editing && <ProductForm initial={editing} onCancel={() => setEditing(null)} onSaved={(p) => { setEditing(null); upsertLocal(p); }} showToast={showToast} />}
     </div>
   );
@@ -898,6 +1160,20 @@ export default function App() {
   const [cart, setCart] = useState([]);
   const [toast, setToast] = useState({ message: "", kind: "success" });
   const { products, loading, reload, upsertLocal, removeLocal } = useProducts();
+  const [homeImages, setHomeImages] = useState({});
+
+  useEffect(() => {
+    window.storage.get("home_images", true)
+      .then((r) => setHomeImages(JSON.parse(r.value)))
+      .catch(() => setHomeImages({}));
+  }, []);
+
+  const saveHomeImages = (images) => {
+    setHomeImages(images); // update instantly on screen
+    window.storage.set("home_images", JSON.stringify(images), true).catch((e) => {
+      console.warn("Failed to save theme photos:", e);
+    });
+  };
 
   const t = useMemo(() => T[lang || "ru"], [lang]);
 
@@ -911,7 +1187,7 @@ export default function App() {
       <div style={{ fontFamily: "'Manrope', sans-serif" }}>
         <style>{`@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600&display=swap'); .font-serif { font-family: 'Playfair Display', serif; }`}</style>
         <Toast message={toast.message} kind={toast.kind} />
-        <AdminScreen t={t} products={products} upsertLocal={upsertLocal} removeLocal={removeLocal} goShop={() => setView("shop")} showToast={showToast} />
+        <AdminScreen t={t} products={products} upsertLocal={upsertLocal} removeLocal={removeLocal} goShop={() => setView("shop")} showToast={showToast} homeImages={homeImages} saveHomeImages={saveHomeImages} />
       </div>
     );
   }
@@ -931,7 +1207,7 @@ export default function App() {
         <p className="text-center py-24 text-sm" style={{ color: `${CHARCOAL}66` }}>Загрузка...</p>
       ) : (
         <>
-          {screen === "home" && <HomeScreen t={t} setScreen={setScreen} setActiveCategory={setActiveCategory} setActiveSeason={setActiveSeason} goAdmin={() => setView("admin")} />}
+          {screen === "home" && <HomeScreen t={t} setScreen={setScreen} setActiveCategory={setActiveCategory} setActiveSeason={setActiveSeason} goAdmin={() => setView("admin")} homeImages={homeImages} />}
           {screen === "category" && <CategoryScreen t={t} products={products} category={activeCategory} season={activeSeason} setSeason={setActiveSeason} openProduct={openProduct} setScreen={setScreen} />}
           {screen === "product" && activeProduct && <ProductScreen t={t} product={activeProduct} setScreen={setScreen} addToCart={addToCart} />}
           {screen === "cart" && <CartScreen t={t} cart={cart} removeFromCart={removeFromCart} setScreen={setScreen} />}
