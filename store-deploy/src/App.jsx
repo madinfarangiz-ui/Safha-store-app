@@ -517,12 +517,61 @@ function CartScreen({ t, cart, removeFromCart, setScreen }) {
   );
 }
 
+const ADMIN_TELEGRAM_USERNAME = "safha_admin1";
+const CARD_NUMBER_DISPLAY = "9860 3501 4206 6058";
+const CARD_HOLDER_NAME = "Farangiz Bobojonova";
+
 function CheckoutScreen({ t, cart, setScreen, clearCart }) {
   const total = cart.reduce((s, item) => s + Number(item.product.price || 0), 0);
-  const [locationShared, setLocationShared] = useState(false);
+  const [locationStatus, setLocationStatus] = useState("idle"); // idle | requesting | done | denied
+  const [coords, setCoords] = useState(null);
   const [phone, setPhone] = useState("");
-  const [checkUploaded, setCheckUploaded] = useState(false);
-  const canSubmit = locationShared && phone.trim().length > 5 && checkUploaded;
+  const [orderSent, setOrderSent] = useState(false);
+  const canSubmit = locationStatus === "done" && phone.trim().length > 5;
+
+  const requestLocation = () => {
+    if (!navigator.geolocation) {
+      setLocationStatus("denied");
+      return;
+    }
+    setLocationStatus("requesting");
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        setLocationStatus("done");
+      },
+      () => setLocationStatus("denied"),
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
+
+  const buildOrderMessage = () => {
+    const lines = [];
+    lines.push("Новый заказ / New order:");
+    cart.forEach((item, i) => {
+      lines.push(
+        (i + 1) + ". " + item.product.name + " — " + item.color.name + ", " +
+        (item.size === "freeSize" ? "Free size" : item.size) + " — " + money(item.product.price)
+      );
+    });
+    lines.push("Итого / Total: " + money(total));
+    lines.push("Телефон / Phone: " + phone);
+    if (coords) {
+      lines.push("Локация / Location: https://maps.google.com/?q=" + coords.lat + "," + coords.lng);
+    }
+    lines.push("");
+    lines.push("(Прикрепите чек оплаты в этом чате / Please attach your payment receipt here)");
+    return lines.join("\n");
+  };
+
+  const handleSendOrder = () => {
+    const message = buildOrderMessage();
+    const url = "https://t.me/" + ADMIN_TELEGRAM_USERNAME + "?text=" + encodeURIComponent(message);
+    window.open(url, "_blank");
+    setOrderSent(true);
+    clearCart();
+    setScreen("confirmation");
+  };
 
   return (
     <div className="pb-28">
@@ -530,13 +579,19 @@ function CheckoutScreen({ t, cart, setScreen, clearCart }) {
       <div className="px-4 mt-4">
         <h2 className="font-serif text-base mb-2" style={{ color: CHARCOAL }}>{t.deliveryTitle}</h2>
         <p className="text-xs mb-3" style={{ color: `${CHARCOAL}99` }}>{t.deliverySub}</p>
-        <button onClick={() => setLocationShared(true)} className="w-full flex items-center gap-2 py-3 rounded-xl border text-sm mb-3 justify-center" style={{
-          background: locationShared ? "rgba(124,140,108,0.1)" : "transparent",
-          borderColor: locationShared ? "#7C8C6C" : "rgba(58,36,50,0.2)", color: locationShared ? "#5C6B4E" : CHARCOAL,
+        <button onClick={requestLocation} className="w-full flex items-center gap-2 py-3 rounded-xl border text-sm mb-3 justify-center" style={{
+          background: locationStatus === "done" ? "rgba(124,140,108,0.1)" : "transparent",
+          borderColor: locationStatus === "done" ? "#7C8C6C" : "rgba(58,36,50,0.2)",
+          color: locationStatus === "done" ? "#5C6B4E" : CHARCOAL,
         }}>
-          {locationShared ? <Check size={16} /> : <MapPin size={16} />}
-          {locationShared ? t.locationShared : t.shareLocation}
+          {locationStatus === "done" ? <Check size={16} /> : <MapPin size={16} />}
+          {locationStatus === "done" ? t.locationShared : locationStatus === "requesting" ? "..." : t.shareLocation}
         </button>
+        {locationStatus === "denied" && (
+          <p className="text-[11px] mb-2" style={{ color: "#9C5F5C" }}>
+            Не удалось получить локацию — разрешите доступ в настройках браузера / Telegram и попробуйте снова.
+          </p>
+        )}
         <div className="flex items-center gap-2 border border-[#3A2432]/20 rounded-xl px-3 py-2.5 mb-2">
           <Phone size={16} color={INK} className="opacity-60" />
           <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder={t.phonePlaceholder} className="flex-1 bg-transparent text-sm outline-none" style={{ color: CHARCOAL }} />
@@ -548,22 +603,19 @@ function CheckoutScreen({ t, cart, setScreen, clearCart }) {
         <p className="text-xs mb-3 leading-relaxed" style={{ color: `${CHARCOAL}99` }}>{t.paymentSub}</p>
         <div className="rounded-2xl p-4 mb-3" style={{ background: INK }}>
           <p className="text-[10px] uppercase tracking-wider mb-1" style={{ color: `${IVORY}80` }}>{t.cardNumber}</p>
-          <p className="font-mono text-lg tracking-wider" style={{ color: IVORY }}>8600 XXXX XXXX 1234</p>
+          <p className="font-mono text-lg tracking-wider" style={{ color: IVORY }}>{CARD_NUMBER_DISPLAY}</p>
+          <p className="text-xs mt-1" style={{ color: `${IVORY}90` }}>{CARD_HOLDER_NAME}</p>
         </div>
-        <button onClick={() => setCheckUploaded(true)} className="w-full flex items-center gap-2 py-3 rounded-xl border text-sm justify-center" style={{
-          background: checkUploaded ? "rgba(124,140,108,0.1)" : "transparent",
-          borderColor: checkUploaded ? "#7C8C6C" : "rgba(58,36,50,0.2)", color: checkUploaded ? "#5C6B4E" : CHARCOAL,
-        }}>
-          {checkUploaded ? <Check size={16} /> : <Upload size={16} />}
-          {checkUploaded ? t.uploadedCheck : t.uploadCheck}
-        </button>
+        <p className="text-xs leading-relaxed" style={{ color: `${CHARCOAL}99` }}>
+          После оплаты нажмите кнопку ниже — откроется чат с нами в Telegram, куда нужно отправить чек об оплате.
+        </p>
       </div>
       <div className="fixed bottom-16 inset-x-0 max-w-md mx-auto px-4 py-3 bg-[#F7F2EA]/95 backdrop-blur border-t border-[#3A2432]/10">
         <div className="flex justify-between text-sm mb-2">
           <span style={{ color: `${CHARCOAL}99` }}>{t.total}</span>
           <span className="font-medium" style={{ color: CHARCOAL }}>{money(total)}</span>
         </div>
-        <button disabled={!canSubmit} onClick={() => { clearCart(); setScreen("confirmation"); }} className="w-full py-3 rounded-full font-medium flex items-center justify-center gap-2" style={{
+        <button disabled={!canSubmit} onClick={handleSendOrder} className="w-full py-3 rounded-full font-medium flex items-center justify-center gap-2" style={{
           background: canSubmit ? GOLD : "rgba(58,36,50,0.15)", color: canSubmit ? "#fff" : "rgba(42,36,32,0.4)",
         }}>
           <CreditCard size={16} />{t.placeOrder}
