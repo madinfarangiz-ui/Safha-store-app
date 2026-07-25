@@ -659,12 +659,56 @@ function LangScreen({ onPick }) {
 }
 
 /* ============================ ADMIN PANEL ============================ */
+const STORAGE_BUCKET_URL = "https://rfsgpqmddgtuxhkqaeau.supabase.co/storage/v1/object";
+const STORAGE_PUBLIC_URL = "https://rfsgpqmddgtuxhkqaeau.supabase.co/storage/v1/object/public";
+const STORAGE_KEY = "sb_publishable_Z2hMA2ZiwUD3NgVMfLBOPQ_Mqx-vCOC";
+
 function ColorRow({ color, onChange, onRemove, canRemove }) {
+  const [uploading, setUploading] = useState(false);
+
+  const handleFileChange = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    setUploading(true);
+    const path = "colors/" + Date.now() + "-" + file.name.replace(/[^a-zA-Z0-9._-]/g, "");
+    fetch(STORAGE_BUCKET_URL + "/product-images/" + path, {
+      method: "POST",
+      headers: {
+        apikey: STORAGE_KEY,
+        Authorization: "Bearer " + STORAGE_KEY,
+        "Content-Type": file.type,
+      },
+      body: file,
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("upload failed: " + res.status);
+        return res.json();
+      })
+      .then(() => {
+        onChange({ ...color, imageUrl: STORAGE_PUBLIC_URL + "/product-images/" + path });
+        setUploading(false);
+      })
+      .catch(() => {
+        setUploading(false);
+        window.alert("Не удалось загрузить фото / Photo upload failed. Проверьте, что bucket 'product-images' создан и публичный.");
+      });
+  };
+
   return (
     <div className="flex items-center gap-2 mb-2">
       <input type="color" value={color.hex} onChange={(e) => onChange({ ...color, hex: e.target.value })} className="w-9 h-9 rounded-lg border border-black/10 cursor-pointer flex-shrink-0" />
       <input placeholder="Название цвета" value={color.name} onChange={(e) => onChange({ ...color, name: e.target.value })} className="flex-1 min-w-0 border border-black/15 rounded-lg px-2.5 py-2 text-sm" />
-      <input placeholder="Ссылка на фото" value={color.imageUrl} onChange={(e) => onChange({ ...color, imageUrl: e.target.value })} className="flex-[1.4] min-w-0 border border-black/15 rounded-lg px-2.5 py-2 text-sm" />
+      <label className="flex-[1.4] min-w-0 border border-black/15 rounded-lg px-2.5 py-2 text-sm flex items-center gap-1.5 cursor-pointer bg-white">
+        {color.imageUrl ? (
+          <img src={color.imageUrl} alt="" className="w-6 h-6 rounded object-cover flex-shrink-0" />
+        ) : (
+          <Upload size={14} className="flex-shrink-0 opacity-50" />
+        )}
+        <span className="truncate text-xs" style={{ color: color.imageUrl ? CHARCOAL : "rgba(0,0,0,0.4)" }}>
+          {uploading ? "Загрузка..." : color.imageUrl ? "Фото загружено" : "Выбрать фото"}
+        </span>
+        <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
+      </label>
       {canRemove && <button onClick={onRemove} className="p-1.5 flex-shrink-0"><Trash2 size={16} color="#9C5F5C" /></button>}
     </div>
   );
