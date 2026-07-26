@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
   Globe,
@@ -685,8 +684,34 @@ function CheckoutScreen({ t, cart, setScreen, clearCart }) {
       const data = await res.json();
       if (!data.ok) throw new Error(data.error || "unknown error");
 
-      const locationMsg =
-        "Заказ #" + orderCode + " — адрес: " + address + ". Пожалуйста, также отправьте геометку через 📎 → Локация в этом чате.";
+      const fullLines = [];
+      fullLines.push("Заказ #" + orderCode);
+      cart.forEach((item, i) => {
+        fullLines.push(
+          (i + 1) + ". " + item.product.name + " — " + item.color.name + ", " +
+          (item.size === "freeSize" ? "Free size" : item.size) + " — " + money(item.product.price)
+        );
+      });
+      fullLines.push("Итого: " + money(total));
+      fullLines.push("Телефон: " + phone);
+      fullLines.push("Адрес: " + address);
+      fullLines.push(
+        "Доставка: " +
+        (deliveryMethod === "yandex" ? "Ташкент — курьер Яндекс, оплата при получении" : "Другой регион — BTS")
+      );
+      const photoLinks = cart.map((item) => item.color.imageUrl).filter(Boolean);
+      if (photoLinks.length) {
+        fullLines.push("");
+        fullLines.push("Фото товара:");
+        photoLinks.forEach((url) => fullLines.push(url));
+      }
+      if (receiptUrl) {
+        fullLines.push("");
+        fullLines.push("Чек оплаты: " + receiptUrl);
+      }
+      fullLines.push("");
+      fullLines.push("Пожалуйста, также отправьте геометку через 📎 → Локация в этом чате.");
+      const locationMsg = fullLines.join("\n");
       window.open("https://t.me/" + ADMIN_TELEGRAM_USERNAME + "?text=" + encodeURIComponent(locationMsg), "_blank");
 
       clearCart();
@@ -700,7 +725,7 @@ function CheckoutScreen({ t, cart, setScreen, clearCart }) {
   };
 
   return (
-    <div className="pb-28">
+    <div className="pb-40">
       <TopBar title={t.checkout} onBack={() => setScreen("cart")} />
 
       <div className="px-4 mt-4">
@@ -1238,7 +1263,7 @@ export default function App() {
         </>
       )}
 
-      {screen !== "confirmation" && !loading && <BottomNav screen={screen} setScreen={setScreen} cartCount={cart.length} t={t} />}
+      {screen !== "confirmation" && screen !== "checkout" && !loading && <BottomNav screen={screen} setScreen={setScreen} cartCount={cart.length} t={t} />}
     </div>
   );
 }
