@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
   Globe,
@@ -1831,8 +1830,8 @@ export default function App() {
 
   if (view === "admin") {
     return (
-      <div style={{ fontFamily: "'Manrope', sans-serif" }}>
-        <style>{`@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600&display=swap'); .font-serif { font-family: 'Playfair Display', serif; }`}</style>
+      <div style={{ fontFamily: "'Poppins', sans-serif" }}>
+        <style>{`@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600&display=swap'); .font-serif { font-family: 'Playfair Display', serif; }`}</style>
         <Toast message={toast.message} kind={toast.kind} />
         <AdminScreen t={t} products={products} upsertLocal={upsertLocal} removeLocal={removeLocal} goShop={() => setView("shop")} showToast={showToast} homeImages={homeImages} saveHomeImages={saveHomeImages} faqItems={faqItems} saveFaqItems={saveFaqItems} />
       </div>
@@ -1847,8 +1846,8 @@ export default function App() {
   const openProduct = (p) => { setActiveProduct(p); setScreen("product"); };
 
   return (
-    <div className="max-w-md mx-auto min-h-screen" style={{ background: IVORY, fontFamily: "'Manrope', sans-serif" }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;1,500&display=swap'); .font-serif { font-family: 'Playfair Display', serif; }`}</style>
+    <div className="max-w-md mx-auto min-h-screen" style={{ background: IVORY, fontFamily: "'Poppins', sans-serif" }}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;1,500&display=swap'); .font-serif { font-family: 'Playfair Display', serif; }`}</style>
 
       {loading ? (
         <p className="text-center py-24 text-sm" style={{ color: `${CHARCOAL}66` }}>Загрузка...</p>
