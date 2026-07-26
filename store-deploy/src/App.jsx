@@ -58,6 +58,8 @@ const T = {
     orderSentSub: "Мы проверим оплату и подтвердим заказ в течение короткого времени. Курьер свяжется с вами по указанному номеру.",
     backToHome: "На главную", fitFrom: "от", height: "рост", weightUpTo: "вес до",
     oversizeNote: "Оверсайз — при сомнении берите размер меньше", freeSize: "Свободный размер",
+    notSureChat: "Не уверены в размере? Напишите нам",
+    fabricMore: "Подробнее о ткани →",
     favorites: "Избранное", noFavorites: "Пока нет избранного", noFavoritesSub: "Нажмите на ♥, чтобы сохранить понравившееся",
     profile: "Профиль", chatWithAdmin: "Написать нам", myOrders: "Мои заказы", myOrdersSub: "История заказов появится здесь после оформления покупок.",
     savedAddress: "Последний адрес доставки", noSavedAddress: "Пока нет сохранённого адреса",
@@ -85,6 +87,8 @@ const T = {
     orderSentSub: "We'll verify the payment and confirm your order shortly. Our courier will contact you at the number provided.",
     backToHome: "Back to home", fitFrom: "from", height: "height", weightUpTo: "weight up to",
     oversizeNote: "Runs oversized — size down if unsure", freeSize: "Free size",
+    notSureChat: "Not sure about the fit? Chat with us",
+    fabricMore: "More about this fabric →",
     favorites: "Favorites", noFavorites: "No favorites yet", noFavoritesSub: "Tap the heart icon to save items you like",
     profile: "Profile", chatWithAdmin: "Chat with us", myOrders: "My orders", myOrdersSub: "Your order history will appear here after you place an order.",
     savedAddress: "Last delivery address", noSavedAddress: "No saved address yet",
@@ -112,6 +116,8 @@ const T = {
     orderSentSub: "To'lovni tekshirib, buyurtmangizni tasdiqlaymiz. Kuryerimiz ko'rsatilgan raqam orqali bog'lanadi.",
     backToHome: "Bosh sahifaga", fitFrom: "dan", height: "bo'y", weightUpTo: "vazn",
     oversizeNote: "Oversize — ishonchingiz komil bo'lmasa, kichikroq o'lchamni oling", freeSize: "Erkin o'lcham",
+    notSureChat: "O'lcham haqida shubhangiz bormi? Biz bilan yozing",
+    fabricMore: "Mato haqida batafsil →",
     favorites: "Sevimlilar", noFavorites: "Hali sevimlilar yo'q", noFavoritesSub: "Yoqqan mahsulotni saqlash uchun ♥ ni bosing",
     profile: "Profil", chatWithAdmin: "Biz bilan yozing", myOrders: "Buyurtmalarim", myOrdersSub: "Buyurtma tarixi buyurtma berganingizdan keyin shu yerda paydo bo'ladi.",
     savedAddress: "Oxirgi yetkazib berish manzili", noSavedAddress: "Hali saqlangan manzil yo'q",
@@ -346,7 +352,9 @@ function FitGauge({ product, t }) {
         <div><span className="text-[#2A2420]/50">{t.height}: </span><span className="font-medium">{t.fitFrom} {product.minHeight}–{product.maxHeight}cm</span></div>
         <div><span className="text-[#2A2420]/50">{t.weightUpTo}: </span><span className="font-medium">{product.maxWeight}kg</span></div>
       </div>
-      <p className="text-[11px] text-[#9C5F5C] mt-2 italic">{t.oversizeNote}</p>
+      <a href={"https://t.me/" + ADMIN_TELEGRAM_USERNAME} target="_blank" rel="noreferrer" className="text-[11px] mt-2 italic underline block" style={{ color: "#9C5F5C" }}>
+        {t.notSureChat}
+      </a>
     </div>
   );
 }
@@ -685,8 +693,18 @@ function ProductScreen({ t, product, setScreen, addToCart, favorites, toggleFavo
         </div>
 
         <div className="mt-5">
-          <p className="text-xs uppercase tracking-wider mb-1" style={{ color: `${CHARCOAL}80` }}>{t.fabric}</p>
-          <p className="text-sm" style={{ color: CHARCOAL }}>{product.fabric}</p>
+          <p className="text-xs uppercase tracking-wider mb-1.5" style={{ color: `${CHARCOAL}80` }}>{t.fabric}</p>
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <span
+              className="inline-block px-3 py-1.5 rounded-full text-sm font-medium"
+              style={{ background: `${GOLD}1A`, color: INK }}
+            >
+              {product.fabric}
+            </span>
+            <button onClick={() => setScreen("faq")} className="text-xs font-medium underline" style={{ color: GOLD }}>
+              {t.fabricMore}
+            </button>
+          </div>
         </div>
 
         <FitGauge product={product} t={t} />
@@ -911,13 +929,16 @@ function CheckoutScreen({ t, cart, setScreen, clearCart, tgUserId }) {
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [receiptUrl, setReceiptUrl] = useState("");
+  const [cardCopied, setCardCopied] = useState(false);
   const [uploadingReceipt, setUploadingReceipt] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const receiptInputRef = useRef(null);
 
   const phoneDigits = phone.replace(/\D/g, "");
   const phoneValid = phoneDigits.length >= 9;
-  const canSubmit = phoneValid && address.trim().length > 3 && !!receiptUrl && !submitting;
+  const [locationAck, setLocationAck] = useState(false);
+  const [policyAck, setPolicyAck] = useState(false);
+  const canSubmit = phoneValid && address.trim().length > 3 && !!receiptUrl && locationAck && policyAck && !submitting;
 
   const handleReceiptChange = (e) => {
     const file = e.target.files && e.target.files[0];
@@ -1114,11 +1135,30 @@ function CheckoutScreen({ t, cart, setScreen, clearCart, tgUserId }) {
       <div className="px-4 mt-6">
         <h2 className="font-serif text-base mb-2" style={{ color: CHARCOAL }}>{t.paymentTitle}</h2>
         <p className="text-xs mb-3 leading-relaxed" style={{ color: `${CHARCOAL}99` }}>{t.paymentSub}</p>
-        <div className="rounded-2xl p-4 mb-3" style={{ background: INK }}>
+        <button
+          type="button"
+          onClick={() => {
+            const digitsOnly = CARD_NUMBER_DISPLAY.replace(/\s/g, "");
+            const doCopy = () => {
+              setCardCopied(true);
+              setTimeout(() => setCardCopied(false), 1500);
+            };
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(digitsOnly).then(doCopy).catch(doCopy);
+            } else {
+              doCopy();
+            }
+          }}
+          className="w-full text-left rounded-2xl p-4 mb-3 relative"
+          style={{ background: INK }}
+        >
           <p className="text-[10px] uppercase tracking-wider mb-1" style={{ color: `${IVORY}80` }}>{t.cardNumber}</p>
           <p className="font-mono text-lg tracking-wider" style={{ color: IVORY }}>{CARD_NUMBER_DISPLAY}</p>
           <p className="text-xs mt-1" style={{ color: `${IVORY}90` }}>{CARD_HOLDER_NAME}</p>
-        </div>
+          <span className="absolute top-4 right-4 text-[10px]" style={{ color: cardCopied ? "#8FBF9F" : `${IVORY}70` }}>
+            {cardCopied ? "Скопировано ✓" : "Нажмите, чтобы скопировать"}
+          </span>
+        </button>
 
         <input ref={receiptInputRef} type="file" accept="image/*" onChange={handleReceiptChange} className="hidden" />
         <button
@@ -1134,6 +1174,34 @@ function CheckoutScreen({ t, cart, setScreen, clearCart, tgUserId }) {
           {receiptUrl ? <Check size={16} /> : <Upload size={16} />}
           {uploadingReceipt ? "Загрузка..." : receiptUrl ? "Чек загружен" : "Прикрепить чек оплаты (обязательно)"}
         </button>
+
+        {receiptUrl && (
+          <>
+            <label className="flex items-start gap-2.5 mt-3 p-3 rounded-xl cursor-pointer" style={{ background: `${GOLD}14` }}>
+              <input
+                type="checkbox"
+                checked={locationAck}
+                onChange={(e) => setLocationAck(e.target.checked)}
+                className="mt-0.5 flex-shrink-0"
+              />
+              <span className="text-xs leading-relaxed" style={{ color: CHARCOAL }}>
+                Пожалуйста, отправьте свою локацию через Telegram (📎 → Локация) в чате, который откроется после отправки заказа.
+              </span>
+            </label>
+
+            <label className="flex items-start gap-2.5 mt-2 p-3 rounded-xl cursor-pointer" style={{ background: "rgba(58,36,50,0.04)" }}>
+              <input
+                type="checkbox"
+                checked={policyAck}
+                onChange={(e) => setPolicyAck(e.target.checked)}
+                className="mt-0.5 flex-shrink-0"
+              />
+              <span className="text-xs leading-relaxed" style={{ color: CHARCOAL }}>
+                Ознакомлен(а) с условиями заказа: оформленный товар не подлежит возврату или обмену на другую модель, цвет или размер.
+              </span>
+            </label>
+          </>
+        )}
       </div>
 
       <div className="px-4 mt-6 pb-8">
@@ -1148,7 +1216,7 @@ function CheckoutScreen({ t, cart, setScreen, clearCart, tgUserId }) {
         </button>
         {!canSubmit && (
           <p className="text-[11px] text-center mt-1.5" style={{ color: "#9C5F5C" }}>
-            Укажите телефон и прикрепите чек, чтобы отправить заказ / Enter phone and attach receipt to send order
+            Укажите телефон, адрес, прикрепите чек и подтвердите оба пункта ниже / Fill in phone, address, receipt, and confirm both checkboxes above
           </p>
         )}
       </div>
