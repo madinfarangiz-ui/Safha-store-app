@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
   Globe,
@@ -725,12 +726,32 @@ function FavoritesScreen({ t, products, favorites, toggleFavorite, openProduct, 
 
 function ProfileScreen({ t, tgUser }) {
   const [lastAddress, setLastAddress] = useState("");
+  const [orders, setOrders] = useState([]);
+  const [loadingOrders, setLoadingOrders] = useState(true);
 
   useEffect(() => {
     window.storage.get("lastAddress:" + tgUser.id, true)
       .then((r) => setLastAddress(r.value))
       .catch(() => setLastAddress(""));
+
+    window.storage.list("order:" + tgUser.id + ":", true)
+      .then((r) => {
+        const keys = r.keys || [];
+        return Promise.all(
+          keys.map((key) =>
+            window.storage.get(key, true).then((res) => JSON.parse(res.value)).catch(() => null)
+          )
+        );
+      })
+      .then((list) => {
+        const valid = list.filter(Boolean).sort((a, b) => b.timestamp - a.timestamp);
+        setOrders(valid);
+        setLoadingOrders(false);
+      })
+      .catch(() => setLoadingOrders(false));
   }, [tgUser.id]);
+
+  const displayName = tgUser.username ? "@" + tgUser.username : (tgUser.first_name || "Гость");
 
   return (
     <div className="pb-24">
@@ -741,8 +762,10 @@ function ProfileScreen({ t, tgUser }) {
             <User size={24} color={GOLD} />
           </div>
           <div>
-            <p className="font-serif text-lg" style={{ color: CHARCOAL }}>{tgUser.first_name || "Гость"}</p>
-            <p className="text-xs" style={{ color: `${CHARCOAL}70` }}>Telegram ID: {tgUser.id}</p>
+            <p className="font-serif text-lg" style={{ color: CHARCOAL }}>{displayName}</p>
+            {tgUser.username && tgUser.first_name && (
+              <p className="text-xs" style={{ color: `${CHARCOAL}70` }}>{tgUser.first_name}</p>
+            )}
           </div>
         </div>
 
@@ -759,7 +782,30 @@ function ProfileScreen({ t, tgUser }) {
 
         <div className="rounded-2xl p-4 mb-3 border border-black/10">
           <p className="text-xs uppercase tracking-wide mb-2" style={{ color: `${CHARCOAL}80` }}>{t.myOrders}</p>
-          <p className="text-sm" style={{ color: `${CHARCOAL}90` }}>{t.myOrdersSub}</p>
+          {loadingOrders ? (
+            <p className="text-sm" style={{ color: `${CHARCOAL}60` }}>...</p>
+          ) : orders.length === 0 ? (
+            <p className="text-sm" style={{ color: `${CHARCOAL}90` }}>{t.myOrdersSub}</p>
+          ) : (
+            <div className="space-y-3">
+              {orders.map((o) => (
+                <div key={o.orderCode} className="border-t border-black/5 pt-3 first:border-t-0 first:pt-0">
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-sm font-medium" style={{ color: CHARCOAL }}>#{o.orderCode}</span>
+                    <span className="text-xs" style={{ color: `${CHARCOAL}60` }}>
+                      {new Date(o.timestamp).toLocaleDateString("ru-RU")}
+                    </span>
+                  </div>
+                  {(o.items || []).map((item, i) => (
+                    <p key={i} className="text-xs" style={{ color: `${CHARCOAL}90` }}>
+                      {item.name} — {item.colorName}, {item.size === "freeSize" ? "Free size" : item.size}
+                    </p>
+                  ))}
+                  <p className="text-xs font-medium mt-1" style={{ color: GOLD }}>{o.total}</p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="rounded-2xl p-4 border border-black/10">
@@ -826,7 +872,9 @@ function CheckoutScreen({ t, cart, setScreen, clearCart, tgUserId }) {
   const [submitting, setSubmitting] = useState(false);
   const receiptInputRef = useRef(null);
 
-  const canSubmit = phone.trim().length > 5 && address.trim().length > 3 && !!receiptUrl && !submitting;
+  const phoneDigits = phone.replace(/\D/g, "");
+  const phoneValid = phoneDigits.length >= 9;
+  const canSubmit = phoneValid && address.trim().length > 3 && !!receiptUrl && !submitting;
 
   const handleReceiptChange = (e) => {
     const file = e.target.files && e.target.files[0];
@@ -884,6 +932,21 @@ function CheckoutScreen({ t, cart, setScreen, clearCart, tgUserId }) {
 
       if (tgUserId) {
         window.storage.set("lastAddress:" + tgUserId, address, true).catch(() => {});
+        const orderRecord = {
+          orderCode,
+          total: money(total),
+          phone,
+          address,
+          deliveryMethod,
+          timestamp: Date.now(),
+          items: cart.map((item) => ({
+            name: item.product.name,
+            colorName: item.color.name,
+            size: item.size,
+            priceLabel: money(item.product.price),
+          })),
+        };
+        window.storage.set("order:" + tgUserId + ":" + orderCode, JSON.stringify(orderRecord), true).catch(() => {});
       }
 
       const fullLines = [];
@@ -973,10 +1036,18 @@ function CheckoutScreen({ t, cart, setScreen, clearCart, tgUserId }) {
           </p>
         )}
 
-        <div className="flex items-center gap-2 border border-[#3A2432]/20 rounded-xl px-3 py-2.5 mb-2">
+        <div className="flex items-center gap-2 border rounded-xl px-3 py-2.5" style={{
+          borderColor: phone.length > 0 && !phoneValid ? "#9C5F5C" : "rgba(58,36,50,0.2)",
+        }}>
           <Phone size={16} color={INK} className="opacity-60" />
           <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder={t.phonePlaceholder} className="flex-1 bg-transparent text-sm outline-none" style={{ color: CHARCOAL }} />
         </div>
+        {phone.length > 0 && !phoneValid && (
+          <p className="text-[11px] mt-1 mb-1" style={{ color: "#9C5F5C" }}>
+            Проверьте номер телефона — не хватает цифр / Check the phone number — looks incomplete
+          </p>
+        )}
+        <div className="mb-2" />
 
         <div className="flex items-center gap-2 border border-[#3A2432]/20 rounded-xl px-3 py-2.5 mb-2">
           <MapPin size={16} color={INK} className="opacity-60" />
