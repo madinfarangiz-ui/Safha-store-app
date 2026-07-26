@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
   Globe,
@@ -7,6 +6,9 @@ import {
   Home,
   Grid3x3,
   Package,
+  Heart,
+  User,
+  MessageCircle,
   Check,
   MapPin,
   Phone,
@@ -55,6 +57,9 @@ const T = {
     orderSentSub: "Мы проверим оплату и подтвердим заказ в течение короткого времени. Курьер свяжется с вами по указанному номеру.",
     backToHome: "На главную", fitFrom: "от", height: "рост", weightUpTo: "вес до",
     oversizeNote: "Оверсайз — при сомнении берите размер меньше", freeSize: "Свободный размер",
+    favorites: "Избранное", noFavorites: "Пока нет избранного", noFavoritesSub: "Нажмите на ♥, чтобы сохранить понравившееся",
+    profile: "Профиль", chatWithAdmin: "Написать нам", myOrders: "Мои заказы", myOrdersSub: "История заказов появится здесь после оформления покупок.",
+    savedAddress: "Последний адрес доставки", noSavedAddress: "Пока нет сохранённого адреса",
     noProducts: "Пока нет товаров в этой категории", forOwners: "Панель для владельца магазина",
     backToShop: "← Вернуться в магазин",
   },
@@ -78,6 +83,9 @@ const T = {
     orderSentSub: "We'll verify the payment and confirm your order shortly. Our courier will contact you at the number provided.",
     backToHome: "Back to home", fitFrom: "from", height: "height", weightUpTo: "weight up to",
     oversizeNote: "Runs oversized — size down if unsure", freeSize: "Free size",
+    favorites: "Favorites", noFavorites: "No favorites yet", noFavoritesSub: "Tap the heart icon to save items you like",
+    profile: "Profile", chatWithAdmin: "Chat with us", myOrders: "My orders", myOrdersSub: "Your order history will appear here after you place an order.",
+    savedAddress: "Last delivery address", noSavedAddress: "No saved address yet",
     noProducts: "No products in this category yet", forOwners: "Store owner panel",
     backToShop: "← Back to shop",
   },
@@ -101,6 +109,9 @@ const T = {
     orderSentSub: "To'lovni tekshirib, buyurtmangizni tasdiqlaymiz. Kuryerimiz ko'rsatilgan raqam orqali bog'lanadi.",
     backToHome: "Bosh sahifaga", fitFrom: "dan", height: "bo'y", weightUpTo: "vazn",
     oversizeNote: "Oversize — ishonchingiz komil bo'lmasa, kichikroq o'lchamni oling", freeSize: "Erkin o'lcham",
+    favorites: "Sevimlilar", noFavorites: "Hali sevimlilar yo'q", noFavoritesSub: "Yoqqan mahsulotni saqlash uchun ♥ ni bosing",
+    profile: "Profil", chatWithAdmin: "Biz bilan yozing", myOrders: "Buyurtmalarim", myOrdersSub: "Buyurtma tarixi buyurtma berganingizdan keyin shu yerda paydo bo'ladi.",
+    savedAddress: "Oxirgi yetkazib berish manzili", noSavedAddress: "Hali saqlangan manzil yo'q",
     noProducts: "Bu toifada hali mahsulotlar yo'q", forOwners: "Do'kon egasi paneli",
     backToShop: "← Do'konga qaytish",
   },
@@ -158,6 +169,20 @@ const SEED_PRODUCTS = [
 ];
 
 const money = (n) => Number(n || 0).toLocaleString("ru-RU") + " сум";
+
+function getTelegramUser() {
+  try {
+    const tgUser = window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user;
+    if (tgUser && tgUser.id) return tgUser;
+  } catch (e) {}
+  // Fallback for testing outside Telegram (regular browser)
+  let anonId = localStorage.getItem("anon_user_id");
+  if (!anonId) {
+    anonId = "anon_" + Date.now();
+    localStorage.setItem("anon_user_id", anonId);
+  }
+  return { id: anonId, first_name: "Гость" };
+}
 
 /* ============================ SHARED DATA HOOK ============================ */
 function useProducts() {
@@ -257,8 +282,9 @@ function BottomNav({ screen, setScreen, goCatalog, cartCount, t }) {
   const items = [
     { key: "home", icon: Home, label: t.home },
     { key: "catalog", icon: Grid3x3, label: t.catalog },
+    { key: "favorites", icon: Heart, label: t.favorites },
     { key: "cart", icon: ShoppingBag, label: t.cart, badge: cartCount },
-    { key: "orders", icon: Package, label: t.orders },
+    { key: "profile", icon: User, label: t.profile },
   ];
   return (
     <div className="fixed bottom-0 inset-x-0 z-20 bg-[#F7F2EA] border-t border-[#3A2432]/10 flex justify-around py-2 max-w-md mx-auto">
@@ -387,7 +413,7 @@ function HomeScreen({ t, setScreen, setActiveCategory, setActiveSeason, goAdmin,
   );
 }
 
-function CategoryScreen({ t, products, category, season, setSeason, setActiveCategory, openProduct, setScreen }) {
+function CategoryScreen({ t, products, category, season, setSeason, setActiveCategory, openProduct, setScreen, favorites, toggleFavorite }) {
   const catLabel = category === "all" ? t.catalog : { dresses: t.dresses, scarves: t.scarves, namaznik: t.namaznik }[category];
   const list = products.filter(
     (p) =>
@@ -434,25 +460,38 @@ function CategoryScreen({ t, products, category, season, setSeason, setActiveCat
         <p className="text-sm text-center py-16" style={{ color: `${CHARCOAL}66` }}>{t.noProducts}</p>
       ) : (
         <div className="grid grid-cols-2 gap-3 px-4 mt-1">
-          {list.map((p) => (
-            <button key={p.id} onClick={() => openProduct(p)} className="text-left">
-              <div className="relative mb-2">
-                <div className="w-full aspect-[3/4] rounded-2xl bg-cover bg-center border border-[#3A2432]/10" style={{
-                  backgroundImage: p.colors?.[0]?.imageUrl ? `url(${p.colors[0].imageUrl})` : (p.colors?.[0]?.hex2 ? `linear-gradient(135deg, ${p.colors[0].hex} 50%, ${p.colors[0].hex2} 50%)` : undefined),
-                  backgroundColor: p.colors?.[0]?.hex || "#eee",
-                }} />
-                {p.colors?.[0]?.videoUrl && (
-                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <div className="w-9 h-9 rounded-full bg-black/40 flex items-center justify-center">
-                      <Play size={16} color="#fff" fill="#fff" />
-                    </div>
-                  </div>
-                )}
+          {list.map((p) => {
+            const isFav = favorites.includes(p.id);
+            return (
+              <div key={p.id} className="text-left">
+                <div className="relative mb-2">
+                  <button onClick={() => openProduct(p)} className="w-full block text-left">
+                    <div className="w-full aspect-[3/4] rounded-2xl bg-cover bg-center border border-[#3A2432]/10" style={{
+                      backgroundImage: p.colors?.[0]?.imageUrl ? `url(${p.colors[0].imageUrl})` : (p.colors?.[0]?.hex2 ? `linear-gradient(135deg, ${p.colors[0].hex} 50%, ${p.colors[0].hex2} 50%)` : undefined),
+                      backgroundColor: p.colors?.[0]?.hex || "#eee",
+                    }} />
+                    {p.colors?.[0]?.videoUrl && (
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <div className="w-9 h-9 rounded-full bg-black/40 flex items-center justify-center">
+                          <Play size={16} color="#fff" fill="#fff" />
+                        </div>
+                      </div>
+                    )}
+                  </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); toggleFavorite(p.id); }}
+                    className="absolute top-2 right-2 w-8 h-8 rounded-full bg-white/85 flex items-center justify-center"
+                  >
+                    <Heart size={15} color={isFav ? "#9C5F5C" : CHARCOAL} fill={isFav ? "#9C5F5C" : "none"} />
+                  </button>
+                </div>
+                <button onClick={() => openProduct(p)} className="w-full text-left">
+                  <p className="text-sm font-medium leading-snug" style={{ color: CHARCOAL }}>{p.name}</p>
+                  <p className="text-xs font-medium mt-0.5" style={{ color: GOLD }}>{money(p.price)}</p>
+                </button>
               </div>
-              <p className="text-sm font-medium leading-snug" style={{ color: CHARCOAL }}>{p.name}</p>
-              <p className="text-xs font-medium mt-0.5" style={{ color: GOLD }}>{money(p.price)}</p>
-            </button>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
@@ -549,7 +588,7 @@ function ImageZoomModal({ src, onClose }) {
   );
 }
 
-function ProductScreen({ t, product, setScreen, addToCart }) {
+function ProductScreen({ t, product, setScreen, addToCart, favorites, toggleFavorite }) {
   const [colorIdx, setColorIdx] = useState(0);
   const [zoomOpen, setZoomOpen] = useState(false);
   const [videoOpen, setVideoOpen] = useState(false);
@@ -589,7 +628,12 @@ function ProductScreen({ t, product, setScreen, addToCart }) {
       <div className="px-4 mt-4">
         <div className="flex items-center justify-between">
           <h1 className="font-serif text-xl" style={{ color: CHARCOAL }}>{product.name}</h1>
-          <SeasonTag season={product.season} t={t} />
+          <div className="flex items-center gap-2">
+            <SeasonTag season={product.season} t={t} />
+            <button onClick={() => toggleFavorite(product.id)} className="w-8 h-8 rounded-full bg-black/[0.04] flex items-center justify-center flex-shrink-0">
+              <Heart size={16} color={favorites.includes(product.id) ? "#9C5F5C" : CHARCOAL} fill={favorites.includes(product.id) ? "#9C5F5C" : "none"} />
+            </button>
+          </div>
         </div>
         <p className="font-medium mt-1" style={{ color: GOLD }}>{money(product.price)}</p>
 
@@ -641,6 +685,92 @@ function ProductScreen({ t, product, setScreen, addToCart }) {
   );
 }
 
+function FavoritesScreen({ t, products, favorites, toggleFavorite, openProduct, setScreen }) {
+  const list = products.filter((p) => favorites.includes(p.id));
+  return (
+    <div className="pb-24">
+      <TopBar title={t.favorites} />
+      {list.length === 0 ? (
+        <div className="flex flex-col items-center justify-center text-center px-8 py-24">
+          <Heart size={36} color={INK} strokeWidth={1.3} className="mb-3 opacity-40" />
+          <p className="font-serif text-lg" style={{ color: CHARCOAL }}>{t.noFavorites}</p>
+          <p className="text-sm mt-1" style={{ color: `${CHARCOAL}80` }}>{t.noFavoritesSub}</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-3 px-4 mt-3">
+          {list.map((p) => (
+            <div key={p.id} className="text-left">
+              <div className="relative mb-2">
+                <button onClick={() => openProduct(p)} className="w-full block text-left">
+                  <div className="w-full aspect-[3/4] rounded-2xl bg-cover bg-center border border-[#3A2432]/10" style={{
+                    backgroundImage: p.colors?.[0]?.imageUrl ? `url(${p.colors[0].imageUrl})` : undefined,
+                    backgroundColor: p.colors?.[0]?.hex || "#eee",
+                  }} />
+                </button>
+                <button onClick={() => toggleFavorite(p.id)} className="absolute top-2 right-2 w-8 h-8 rounded-full bg-white/85 flex items-center justify-center">
+                  <Heart size={15} color="#9C5F5C" fill="#9C5F5C" />
+                </button>
+              </div>
+              <button onClick={() => openProduct(p)} className="w-full text-left">
+                <p className="text-sm font-medium leading-snug" style={{ color: CHARCOAL }}>{p.name}</p>
+                <p className="text-xs font-medium mt-0.5" style={{ color: GOLD }}>{money(p.price)}</p>
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ProfileScreen({ t, tgUser }) {
+  const [lastAddress, setLastAddress] = useState("");
+
+  useEffect(() => {
+    window.storage.get("lastAddress:" + tgUser.id, true)
+      .then((r) => setLastAddress(r.value))
+      .catch(() => setLastAddress(""));
+  }, [tgUser.id]);
+
+  return (
+    <div className="pb-24">
+      <TopBar title={t.profile} />
+      <div className="px-4 mt-4">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: `${GOLD}22` }}>
+            <User size={24} color={GOLD} />
+          </div>
+          <div>
+            <p className="font-serif text-lg" style={{ color: CHARCOAL }}>{tgUser.first_name || "Гость"}</p>
+            <p className="text-xs" style={{ color: `${CHARCOAL}70` }}>Telegram ID: {tgUser.id}</p>
+          </div>
+        </div>
+
+        <a
+          href={"https://t.me/" + ADMIN_TELEGRAM_USERNAME}
+          target="_blank"
+          rel="noreferrer"
+          className="w-full flex items-center gap-2 py-3 px-4 rounded-xl mb-3"
+          style={{ background: INK, color: IVORY }}
+        >
+          <MessageCircle size={17} />
+          <span className="text-sm font-medium">{t.chatWithAdmin}</span>
+        </a>
+
+        <div className="rounded-2xl p-4 mb-3 border border-black/10">
+          <p className="text-xs uppercase tracking-wide mb-2" style={{ color: `${CHARCOAL}80` }}>{t.myOrders}</p>
+          <p className="text-sm" style={{ color: `${CHARCOAL}90` }}>{t.myOrdersSub}</p>
+        </div>
+
+        <div className="rounded-2xl p-4 border border-black/10">
+          <p className="text-xs uppercase tracking-wide mb-2" style={{ color: `${CHARCOAL}80` }}>{t.savedAddress}</p>
+          <p className="text-sm" style={{ color: `${CHARCOAL}90` }}>{lastAddress || t.noSavedAddress}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function CartScreen({ t, cart, removeFromCart, setScreen }) {
   const total = cart.reduce((s, item) => s + Number(item.product.price || 0), 0);
   return (
@@ -686,7 +816,7 @@ const ADMIN_TELEGRAM_USERNAME = "safha_admin1";
 const CARD_NUMBER_DISPLAY = "9860 3501 4206 6058";
 const CARD_HOLDER_NAME = "Farangiz Bobojonova";
 
-function CheckoutScreen({ t, cart, setScreen, clearCart }) {
+function CheckoutScreen({ t, cart, setScreen, clearCart, tgUserId }) {
   const total = cart.reduce((s, item) => s + Number(item.product.price || 0), 0);
   const [deliveryMethod, setDeliveryMethod] = useState("yandex"); // 'yandex' | 'bts'
   const [phone, setPhone] = useState("");
@@ -751,6 +881,10 @@ function CheckoutScreen({ t, cart, setScreen, clearCart }) {
       });
       const data = await res.json();
       if (!data.ok) throw new Error(data.error || "unknown error");
+
+      if (tgUserId) {
+        window.storage.set("lastAddress:" + tgUserId, address, true).catch(() => {});
+      }
 
       const fullLines = [];
       fullLines.push("Заказ #" + orderCode);
@@ -963,7 +1097,11 @@ function ColorRow({ color, onChange, onRemove, canRemove }) {
       },
       body: file,
     }).then((res) => {
-      if (!res.ok) throw new Error("upload failed: " + res.status);
+      if (!res.ok) {
+        return res.text().then((text) => {
+          throw new Error(res.status + ": " + text);
+        });
+      }
       return STORAGE_PUBLIC_URL + "/product-images/" + path;
     });
   };
@@ -992,9 +1130,9 @@ function ColorRow({ color, onChange, onRemove, canRemove }) {
         onChange({ ...color, videoUrl: url });
         setUploadingVideo(false);
       })
-      .catch(() => {
+      .catch((err) => {
         setUploadingVideo(false);
-        window.alert("Не удалось загрузить видео / Video upload failed.");
+        window.alert("Не удалось загрузить видео / Video upload failed:\n" + err.message);
       });
   };
 
@@ -1332,6 +1470,25 @@ export default function App() {
 
   const t = useMemo(() => T[lang || "ru"], [lang]);
 
+  const tgUser = useMemo(() => getTelegramUser(), []);
+  const [favorites, setFavorites] = useState([]);
+
+  useEffect(() => {
+    window.storage.get("favorites:" + tgUser.id, true)
+      .then((r) => setFavorites(JSON.parse(r.value)))
+      .catch(() => setFavorites([]));
+  }, [tgUser.id]);
+
+  const toggleFavorite = (productId) => {
+    setFavorites((prev) => {
+      const next = prev.includes(productId) ? prev.filter((id) => id !== productId) : [...prev, productId];
+      window.storage.set("favorites:" + tgUser.id, JSON.stringify(next), true).catch((e) => {
+        console.warn("Failed to save favorites:", e);
+      });
+      return next;
+    });
+  };
+
   const showToast = (message, kind = "success") => {
     setToast({ message, kind });
     setTimeout(() => setToast({ message: "", kind: "success" }), 2200);
@@ -1363,19 +1520,13 @@ export default function App() {
       ) : (
         <>
           {screen === "home" && <HomeScreen t={t} setScreen={setScreen} setActiveCategory={setActiveCategory} setActiveSeason={setActiveSeason} goAdmin={() => setView("admin")} homeImages={homeImages} />}
-          {screen === "category" && <CategoryScreen t={t} products={products} category={activeCategory} season={activeSeason} setSeason={setActiveSeason} setActiveCategory={setActiveCategory} openProduct={openProduct} setScreen={setScreen} />}
-          {screen === "product" && activeProduct && <ProductScreen t={t} product={activeProduct} setScreen={setScreen} addToCart={addToCart} />}
+          {screen === "category" && <CategoryScreen t={t} products={products} category={activeCategory} season={activeSeason} setSeason={setActiveSeason} setActiveCategory={setActiveCategory} openProduct={openProduct} setScreen={setScreen} favorites={favorites} toggleFavorite={toggleFavorite} />}
+          {screen === "product" && activeProduct && <ProductScreen t={t} product={activeProduct} setScreen={setScreen} addToCart={addToCart} favorites={favorites} toggleFavorite={toggleFavorite} />}
           {screen === "cart" && <CartScreen t={t} cart={cart} removeFromCart={removeFromCart} setScreen={setScreen} />}
-          {screen === "checkout" && <CheckoutScreen t={t} cart={cart} setScreen={setScreen} clearCart={clearCart} />}
+          {screen === "checkout" && <CheckoutScreen t={t} cart={cart} setScreen={setScreen} clearCart={clearCart} tgUserId={tgUser.id} />}
           {screen === "confirmation" && <ConfirmationScreen t={t} setScreen={setScreen} />}
-          {screen === "orders" && (
-            <div className="pb-24">
-              <TopBar title={t.orders} />
-              <div className="flex flex-col items-center justify-center text-center px-8 py-24">
-                <Package size={36} color={INK} strokeWidth={1.3} className="mb-3 opacity-40" />
-              </div>
-            </div>
-          )}
+          {screen === "favorites" && <FavoritesScreen t={t} products={products} favorites={favorites} toggleFavorite={toggleFavorite} openProduct={openProduct} setScreen={setScreen} />}
+          {screen === "profile" && <ProfileScreen t={t} tgUser={tgUser} />}
         </>
       )}
 
