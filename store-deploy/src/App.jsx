@@ -9,6 +9,7 @@ import {
   Heart,
   User,
   MessageCircle,
+  HelpCircle,
   Check,
   MapPin,
   Phone,
@@ -60,6 +61,7 @@ const T = {
     favorites: "Избранное", noFavorites: "Пока нет избранного", noFavoritesSub: "Нажмите на ♥, чтобы сохранить понравившееся",
     profile: "Профиль", chatWithAdmin: "Написать нам", myOrders: "Мои заказы", myOrdersSub: "История заказов появится здесь после оформления покупок.",
     savedAddress: "Последний адрес доставки", noSavedAddress: "Пока нет сохранённого адреса",
+    faqBanner: "Частые вопросы и информация о тканях", faqTitle: "Вопросы и ткани", faqEmpty: "Раздел пока пуст",
     noProducts: "Пока нет товаров в этой категории", forOwners: "Панель для владельца магазина",
     backToShop: "← Вернуться в магазин",
   },
@@ -86,6 +88,7 @@ const T = {
     favorites: "Favorites", noFavorites: "No favorites yet", noFavoritesSub: "Tap the heart icon to save items you like",
     profile: "Profile", chatWithAdmin: "Chat with us", myOrders: "My orders", myOrdersSub: "Your order history will appear here after you place an order.",
     savedAddress: "Last delivery address", noSavedAddress: "No saved address yet",
+    faqBanner: "FAQ & fabric information", faqTitle: "FAQ & Fabrics", faqEmpty: "Nothing here yet",
     noProducts: "No products in this category yet", forOwners: "Store owner panel",
     backToShop: "← Back to shop",
   },
@@ -112,6 +115,7 @@ const T = {
     favorites: "Sevimlilar", noFavorites: "Hali sevimlilar yo'q", noFavoritesSub: "Yoqqan mahsulotni saqlash uchun ♥ ni bosing",
     profile: "Profil", chatWithAdmin: "Biz bilan yozing", myOrders: "Buyurtmalarim", myOrdersSub: "Buyurtma tarixi buyurtma berganingizdan keyin shu yerda paydo bo'ladi.",
     savedAddress: "Oxirgi yetkazib berish manzili", noSavedAddress: "Hali saqlangan manzil yo'q",
+    faqBanner: "Savol-javob va mato haqida", faqTitle: "Savol-javob va mato", faqEmpty: "Hozircha bo'sh",
     noProducts: "Bu toifada hali mahsulotlar yo'q", forOwners: "Do'kon egasi paneli",
     backToShop: "← Do'konga qaytish",
   },
@@ -368,6 +372,18 @@ function HomeScreen({ t, setScreen, setActiveCategory, setActiveSeason, goAdmin,
       <div className="pt-6 pb-3 px-5 text-center">
         <h1 className="font-serif text-3xl tracking-[0.15em]" style={{ color: INK }}>SAFHA</h1>
         <p className="text-[11px] tracking-wide mt-0.5" style={{ color: `${CHARCOAL}80` }}>{t.tagline}</p>
+      </div>
+      <div className="px-4 mb-2">
+        <button
+          onClick={() => setScreen("faq")}
+          className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl"
+          style={{ background: `${INK}0D` }}
+        >
+          <span className="flex items-center gap-2 text-xs font-medium" style={{ color: INK }}>
+            <HelpCircle size={15} /> {t.faqBanner}
+          </span>
+          <ChevronLeft size={14} style={{ transform: "rotate(180deg)" }} color={INK} />
+        </button>
       </div>
       <div className="relative h-56 flex items-end p-5" style={{
         backgroundImage: `linear-gradient(180deg, rgba(58,36,50,0.15), rgba(58,36,50,0.85)), url(${imgs.hero})`,
@@ -811,6 +827,34 @@ function ProfileScreen({ t, tgUser }) {
           <p className="text-xs uppercase tracking-wide mb-2" style={{ color: `${CHARCOAL}80` }}>{t.savedAddress}</p>
           <p className="text-sm" style={{ color: `${CHARCOAL}90` }}>{lastAddress || t.noSavedAddress}</p>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function FaqItemRow({ item }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="border-b border-black/10 py-3">
+      <button onClick={() => setOpen(!open)} className="w-full flex items-center justify-between text-left">
+        <span className="text-sm font-medium pr-3" style={{ color: CHARCOAL }}>{item.question}</span>
+        <ChevronLeft size={16} color={CHARCOAL} style={{ transform: open ? "rotate(90deg)" : "rotate(-90deg)", flexShrink: 0 }} />
+      </button>
+      {open && <p className="text-sm mt-2 leading-relaxed" style={{ color: `${CHARCOAL}99` }}>{item.answer}</p>}
+    </div>
+  );
+}
+
+function FaqScreen({ t, faqItems, setScreen }) {
+  return (
+    <div className="pb-24">
+      <TopBar title={t.faqTitle} onBack={() => setScreen("home")} />
+      <div className="px-4 mt-2">
+        {faqItems.length === 0 ? (
+          <p className="text-sm text-center py-16" style={{ color: `${CHARCOAL}66` }}>{t.faqEmpty}</p>
+        ) : (
+          faqItems.map((item) => <FaqItemRow key={item.id} item={item} />)
+        )}
       </div>
     </div>
   );
@@ -1405,7 +1449,104 @@ function ThemeImageRow({ label, value, onUploaded }) {
   );
 }
 
-function AdminScreen({ t, products, upsertLocal, removeLocal, goShop, showToast, homeImages, saveHomeImages }) {
+function FaqAdminPanel({ faqItems, saveFaqItems, showToast }) {
+  const [editingIdx, setEditingIdx] = useState(null); // null = not editing, -1 = new, number = index
+  const [draftQ, setDraftQ] = useState("");
+  const [draftA, setDraftA] = useState("");
+
+  const startNew = () => {
+    setEditingIdx(-1);
+    setDraftQ("");
+    setDraftA("");
+  };
+
+  const startEdit = (idx) => {
+    setEditingIdx(idx);
+    setDraftQ(faqItems[idx].question);
+    setDraftA(faqItems[idx].answer);
+  };
+
+  const handleSave = () => {
+    if (!draftQ.trim() || !draftA.trim()) {
+      showToast("Заполните вопрос и ответ", "error");
+      return;
+    }
+    let next;
+    if (editingIdx === -1) {
+      next = [...faqItems, { id: "faq_" + Date.now(), question: draftQ, answer: draftA }];
+    } else {
+      next = faqItems.map((item, i) => (i === editingIdx ? { ...item, question: draftQ, answer: draftA } : item));
+    }
+    saveFaqItems(next);
+    showToast("Сохранено");
+    setEditingIdx(null);
+  };
+
+  const handleDelete = (idx) => {
+    if (!window.confirm("Удалить этот вопрос?")) return;
+    saveFaqItems(faqItems.filter((_, i) => i !== idx));
+    showToast("Удалено");
+  };
+
+  return (
+    <div className="px-5 pb-10">
+      <p className="text-xs mb-3" style={{ color: `${CHARCOAL}80` }}>
+        Вопросы и информация о тканях, видимые на главной странице покупателям.
+      </p>
+
+      {editingIdx !== null ? (
+        <div className="bg-white/70 rounded-2xl p-4 border border-black/5 mb-3">
+          <label className="block text-xs uppercase tracking-wide text-black/50 mb-1">Вопрос</label>
+          <input
+            value={draftQ}
+            onChange={(e) => setDraftQ(e.target.value)}
+            placeholder="Например: Из какой ткани сделаны платья?"
+            className="w-full border border-black/15 rounded-xl px-3 py-2.5 text-sm mb-3"
+          />
+          <label className="block text-xs uppercase tracking-wide text-black/50 mb-1">Ответ</label>
+          <textarea
+            value={draftA}
+            onChange={(e) => setDraftA(e.target.value)}
+            rows={4}
+            placeholder="Подробный ответ..."
+            className="w-full border border-black/15 rounded-xl px-3 py-2.5 text-sm mb-3"
+          />
+          <div className="flex gap-2">
+            <button onClick={() => setEditingIdx(null)} className="flex-1 py-2.5 rounded-full border border-black/15 text-sm font-medium" style={{ color: CHARCOAL }}>
+              Отмена
+            </button>
+            <button onClick={handleSave} className="flex-1 py-2.5 rounded-full text-sm font-medium text-white" style={{ background: GOLD }}>
+              Сохранить
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button onClick={startNew} className="flex items-center gap-1.5 text-sm mb-4" style={{ color: GOLD }}>
+          <Plus size={16} /> Добавить вопрос
+        </button>
+      )}
+
+      {faqItems.length === 0 ? (
+        <p className="text-sm text-black/50">Пока нет вопросов</p>
+      ) : (
+        <div className="space-y-2">
+          {faqItems.map((item, idx) => (
+            <div key={item.id} className="flex items-start gap-2 bg-white/70 rounded-2xl p-3 border border-black/5">
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium" style={{ color: CHARCOAL }}>{item.question}</p>
+                <p className="text-xs mt-0.5 line-clamp-2" style={{ color: `${CHARCOAL}80` }}>{item.answer}</p>
+              </div>
+              <button onClick={() => startEdit(idx)} className="p-1.5 flex-shrink-0"><Edit2 size={15} color={INK} /></button>
+              <button onClick={() => handleDelete(idx)} className="p-1.5 flex-shrink-0"><Trash2 size={15} color="#9C5F5C" /></button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AdminScreen({ t, products, upsertLocal, removeLocal, goShop, showToast, homeImages, saveHomeImages, faqItems, saveFaqItems }) {
   const [editing, setEditing] = useState(null);
   const [filter, setFilter] = useState("all");
   const [tab, setTab] = useState("products"); // 'products' | 'theme'
@@ -1453,9 +1594,14 @@ function AdminScreen({ t, products, upsertLocal, removeLocal, goShop, showToast,
         <button onClick={() => setTab("theme")} className="px-4 py-1.5 rounded-full text-xs font-medium border" style={{
           background: tab === "theme" ? INK : "transparent", color: tab === "theme" ? IVORY : CHARCOAL, borderColor: tab === "theme" ? INK : "rgba(0,0,0,0.15)",
         }}>Оформление / Theme</button>
+        <button onClick={() => setTab("faq")} className="px-4 py-1.5 rounded-full text-xs font-medium border" style={{
+          background: tab === "faq" ? INK : "transparent", color: tab === "faq" ? IVORY : CHARCOAL, borderColor: tab === "faq" ? INK : "rgba(0,0,0,0.15)",
+        }}>Вопросы / FAQ</button>
       </div>
 
-      {tab === "theme" ? (
+      {tab === "faq" ? (
+        <FaqAdminPanel faqItems={faqItems} saveFaqItems={saveFaqItems} showToast={showToast} />
+      ) : tab === "theme" ? (
         <div className="px-5 pb-10">
           <p className="text-xs mb-3" style={{ color: `${CHARCOAL}80` }}>
             Фото на главной странице (баннер, обложки категорий). Изменения появятся сразу после загрузки.
@@ -1538,6 +1684,21 @@ export default function App() {
     });
   };
 
+  const [faqItems, setFaqItems] = useState([]);
+
+  useEffect(() => {
+    window.storage.get("faq_items", true)
+      .then((r) => setFaqItems(JSON.parse(r.value)))
+      .catch(() => setFaqItems([]));
+  }, []);
+
+  const saveFaqItems = (items) => {
+    setFaqItems(items); // update instantly on screen
+    window.storage.set("faq_items", JSON.stringify(items), true).catch((e) => {
+      console.warn("Failed to save FAQ items:", e);
+    });
+  };
+
   const t = useMemo(() => T[lang || "ru"], [lang]);
 
   const tgUser = useMemo(() => getTelegramUser(), []);
@@ -1569,7 +1730,7 @@ export default function App() {
       <div style={{ fontFamily: "'Manrope', sans-serif" }}>
         <style>{`@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600&display=swap'); .font-serif { font-family: 'Playfair Display', serif; }`}</style>
         <Toast message={toast.message} kind={toast.kind} />
-        <AdminScreen t={t} products={products} upsertLocal={upsertLocal} removeLocal={removeLocal} goShop={() => setView("shop")} showToast={showToast} homeImages={homeImages} saveHomeImages={saveHomeImages} />
+        <AdminScreen t={t} products={products} upsertLocal={upsertLocal} removeLocal={removeLocal} goShop={() => setView("shop")} showToast={showToast} homeImages={homeImages} saveHomeImages={saveHomeImages} faqItems={faqItems} saveFaqItems={saveFaqItems} />
       </div>
     );
   }
@@ -1597,6 +1758,7 @@ export default function App() {
           {screen === "confirmation" && <ConfirmationScreen t={t} setScreen={setScreen} />}
           {screen === "favorites" && <FavoritesScreen t={t} products={products} favorites={favorites} toggleFavorite={toggleFavorite} openProduct={openProduct} setScreen={setScreen} />}
           {screen === "profile" && <ProfileScreen t={t} tgUser={tgUser} />}
+          {screen === "faq" && <FaqScreen t={t} faqItems={faqItems} setScreen={setScreen} />}
         </>
       )}
 
