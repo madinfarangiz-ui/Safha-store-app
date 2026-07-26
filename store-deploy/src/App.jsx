@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
   Globe,
@@ -18,6 +17,7 @@ import {
   Edit2,
   X,
   Save,
+  Play,
   AlertCircle,
   CheckCircle2,
   Settings,
@@ -252,7 +252,7 @@ function Toast({ message, kind }) {
 }
 
 /* ============================ STOREFRONT ============================ */
-function BottomNav({ screen, setScreen, cartCount, t }) {
+function BottomNav({ screen, setScreen, goCatalog, cartCount, t }) {
   const items = [
     { key: "home", icon: Home, label: t.home },
     { key: "catalog", icon: Grid3x3, label: t.catalog },
@@ -264,7 +264,11 @@ function BottomNav({ screen, setScreen, cartCount, t }) {
       {items.map(({ key, icon: Icon, label, badge }) => {
         const active = screen === key || (key === "catalog" && screen === "category");
         return (
-          <button key={key} onClick={() => setScreen(key)} className="flex flex-col items-center gap-0.5 px-3 py-1 relative">
+          <button
+            key={key}
+            onClick={() => (key === "catalog" ? goCatalog() : setScreen(key))}
+            className="flex flex-col items-center gap-0.5 px-3 py-1 relative"
+          >
             <Icon size={20} strokeWidth={active ? 2.4 : 1.8} color={active ? GOLD : INK} />
             {badge > 0 && (
               <span className="absolute -top-0.5 right-1 bg-[#B8834A] text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center">
@@ -334,13 +338,16 @@ function HomeScreen({ t, setScreen, setActiveCategory, setActiveSeason, goAdmin,
   ];
   return (
     <div className="pb-24">
+      <div className="pt-6 pb-3 px-5 text-center">
+        <h1 className="font-serif text-3xl tracking-[0.15em]" style={{ color: INK }}>SAFHA</h1>
+        <p className="text-[11px] tracking-wide mt-0.5" style={{ color: `${CHARCOAL}80` }}>{t.tagline}</p>
+      </div>
       <div className="relative h-56 flex items-end p-5" style={{
         backgroundImage: `linear-gradient(180deg, rgba(58,36,50,0.15), rgba(58,36,50,0.85)), url(${imgs.hero})`,
         backgroundSize: "cover", backgroundPosition: "center",
       }}>
         <div>
           <p style={{ color: GOLD }} className="text-xs uppercase tracking-[0.2em] mb-1">{t.newArrivals}</p>
-          <h1 className="font-serif text-2xl leading-tight" style={{ color: IVORY }}>{t.tagline}</h1>
         </div>
       </div>
       <div className="px-4 mt-5">
@@ -379,16 +386,37 @@ function HomeScreen({ t, setScreen, setActiveCategory, setActiveSeason, goAdmin,
   );
 }
 
-function CategoryScreen({ t, products, category, season, setSeason, openProduct, setScreen }) {
-  const catLabel = { dresses: t.dresses, scarves: t.scarves, namaznik: t.namaznik }[category];
+function CategoryScreen({ t, products, category, season, setSeason, setActiveCategory, openProduct, setScreen }) {
+  const catLabel = category === "all" ? t.catalog : { dresses: t.dresses, scarves: t.scarves, namaznik: t.namaznik }[category];
   const list = products.filter(
-    (p) => p.category === category && p.inStock !== false && (season === "all" || p.season === season || p.season === "all")
+    (p) =>
+      (category === "all" || p.category === category) &&
+      p.inStock !== false &&
+      (season === "all" || p.season === season || p.season === "all")
   );
   const showSeasonFilter = category === "dresses";
+  const showCategoryChips = category === "all";
 
   return (
     <div className="pb-24">
       <TopBar title={catLabel} onBack={() => setScreen("home")} />
+      {showCategoryChips && (
+        <div className="flex gap-2 px-4 py-3 overflow-x-auto">
+          {[
+            { key: "all", label: t.all },
+            { key: "dresses", label: t.dresses },
+            { key: "scarves", label: t.scarves },
+            { key: "namaznik", label: t.namaznik },
+          ].map((c) => (
+            <button key={c.key} onClick={() => setActiveCategory(c.key)} className="px-3.5 py-1.5 rounded-full text-xs whitespace-nowrap border" style={{
+              background: category === c.key ? INK : "transparent", color: category === c.key ? IVORY : `${CHARCOAL}B3`,
+              borderColor: category === c.key ? INK : "rgba(58,36,50,0.2)",
+            }}>
+              {c.label}
+            </button>
+          ))}
+        </div>
+      )}
       {showSeasonFilter && (
         <div className="flex gap-2 px-4 py-3 overflow-x-auto">
           {[{ key: "all", label: t.all }, { key: "winter", label: t.seasonWinter }, { key: "summer", label: t.seasonSummer }].map((s) => (
@@ -407,16 +435,42 @@ function CategoryScreen({ t, products, category, season, setSeason, openProduct,
         <div className="grid grid-cols-2 gap-3 px-4 mt-1">
           {list.map((p) => (
             <button key={p.id} onClick={() => openProduct(p)} className="text-left">
-              <div className="w-full aspect-[3/4] rounded-2xl bg-cover bg-center mb-2 border border-[#3A2432]/10" style={{
-                backgroundImage: p.colors?.[0]?.imageUrl ? `url(${p.colors[0].imageUrl})` : (p.colors?.[0]?.hex2 ? `linear-gradient(135deg, ${p.colors[0].hex} 50%, ${p.colors[0].hex2} 50%)` : undefined),
-                backgroundColor: p.colors?.[0]?.hex || "#eee",
-              }} />
+              <div className="relative mb-2">
+                <div className="w-full aspect-[3/4] rounded-2xl bg-cover bg-center border border-[#3A2432]/10" style={{
+                  backgroundImage: p.colors?.[0]?.imageUrl ? `url(${p.colors[0].imageUrl})` : (p.colors?.[0]?.hex2 ? `linear-gradient(135deg, ${p.colors[0].hex} 50%, ${p.colors[0].hex2} 50%)` : undefined),
+                  backgroundColor: p.colors?.[0]?.hex || "#eee",
+                }} />
+                {p.colors?.[0]?.videoUrl && (
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div className="w-9 h-9 rounded-full bg-black/40 flex items-center justify-center">
+                      <Play size={16} color="#fff" fill="#fff" />
+                    </div>
+                  </div>
+                )}
+              </div>
               <p className="text-sm font-medium leading-snug" style={{ color: CHARCOAL }}>{p.name}</p>
               <p className="text-xs font-medium mt-0.5" style={{ color: GOLD }}>{money(p.price)}</p>
             </button>
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+function VideoModal({ src, onClose }) {
+  return (
+    <div className="fixed inset-0 z-50 bg-black flex items-center justify-center">
+      <button onClick={onClose} className="absolute top-4 right-4 z-10 text-white bg-black/40 rounded-full p-2">
+        <X size={22} />
+      </button>
+      <video
+        src={src}
+        controls
+        autoPlay
+        playsInline
+        style={{ maxWidth: "100%", maxHeight: "100%" }}
+      />
     </div>
   );
 }
@@ -497,6 +551,7 @@ function ImageZoomModal({ src, onClose }) {
 function ProductScreen({ t, product, setScreen, addToCart }) {
   const [colorIdx, setColorIdx] = useState(0);
   const [zoomOpen, setZoomOpen] = useState(false);
+  const [videoOpen, setVideoOpen] = useState(false);
   const sizes = product.freeSize ? ["freeSize"] : (product.customSizes || "").split(",").map((s) => s.trim()).filter(Boolean);
   const [size, setSize] = useState(sizes[0] || "freeSize");
   const [justAdded, setJustAdded] = useState(false);
@@ -511,15 +566,25 @@ function ProductScreen({ t, product, setScreen, addToCart }) {
   return (
     <div className="pb-28">
       <TopBar title={product.name} onBack={() => setScreen("category")} />
-      <button
-        onClick={() => color.imageUrl && setZoomOpen(true)}
-        className="w-full aspect-[4/5] bg-cover bg-center block"
-        style={{
-          backgroundImage: color.imageUrl ? `url(${color.imageUrl})` : (color.hex2 ? `linear-gradient(135deg, ${color.hex} 50%, ${color.hex2} 50%)` : undefined),
-          backgroundColor: color.hex,
-        }}
-      />
+      <div className="relative">
+        <button
+          onClick={() => (color.videoUrl ? setVideoOpen(true) : color.imageUrl && setZoomOpen(true))}
+          className="w-full aspect-[4/5] bg-cover bg-center block"
+          style={{
+            backgroundImage: color.imageUrl ? `url(${color.imageUrl})` : (color.hex2 ? `linear-gradient(135deg, ${color.hex} 50%, ${color.hex2} 50%)` : undefined),
+            backgroundColor: color.hex,
+          }}
+        />
+        {color.videoUrl && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="w-16 h-16 rounded-full bg-black/40 flex items-center justify-center">
+              <Play size={26} color="#fff" fill="#fff" />
+            </div>
+          </div>
+        )}
+      </div>
       {zoomOpen && color.imageUrl && <ImageZoomModal src={color.imageUrl} onClose={() => setZoomOpen(false)} />}
+      {videoOpen && color.videoUrl && <VideoModal src={color.videoUrl} onClose={() => setVideoOpen(false)} />}
       <div className="px-4 mt-4">
         <div className="flex items-center justify-between">
           <h1 className="font-serif text-xl" style={{ color: CHARCOAL }}>{product.name}</h1>
@@ -882,13 +947,13 @@ const STORAGE_KEY = "sb_publishable_Z2hMA2ZiwUD3NgVMfLBOPQ_Mqx-vCOC";
 
 function ColorRow({ color, onChange, onRemove, canRemove }) {
   const [uploading, setUploading] = useState(false);
+  const [uploadingVideo, setUploadingVideo] = useState(false);
+  const photoInputRef = useRef(null);
+  const videoInputRef = useRef(null);
 
-  const handleFileChange = (e) => {
-    const file = e.target.files && e.target.files[0];
-    if (!file) return;
-    setUploading(true);
-    const path = "colors/" + Date.now() + "-" + file.name.replace(/[^a-zA-Z0-9._-]/g, "");
-    fetch(STORAGE_BUCKET_URL + "/product-images/" + path, {
+  const uploadFile = (file, folder) => {
+    const path = folder + "/" + Date.now() + "-" + file.name.replace(/[^a-zA-Z0-9._-]/g, "");
+    return fetch(STORAGE_BUCKET_URL + "/product-images/" + path, {
       method: "POST",
       headers: {
         apikey: STORAGE_KEY,
@@ -896,18 +961,39 @@ function ColorRow({ color, onChange, onRemove, canRemove }) {
         "Content-Type": file.type,
       },
       body: file,
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error("upload failed: " + res.status);
-        return res.json();
-      })
-      .then(() => {
-        onChange({ ...color, imageUrl: STORAGE_PUBLIC_URL + "/product-images/" + path });
+    }).then((res) => {
+      if (!res.ok) throw new Error("upload failed: " + res.status);
+      return STORAGE_PUBLIC_URL + "/product-images/" + path;
+    });
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    setUploading(true);
+    uploadFile(file, "colors")
+      .then((url) => {
+        onChange({ ...color, imageUrl: url });
         setUploading(false);
       })
       .catch(() => {
         setUploading(false);
         window.alert("Не удалось загрузить фото / Photo upload failed. Проверьте, что bucket 'product-images' создан и публичный.");
+      });
+  };
+
+  const handleVideoChange = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    setUploadingVideo(true);
+    uploadFile(file, "colors/videos")
+      .then((url) => {
+        onChange({ ...color, videoUrl: url });
+        setUploadingVideo(false);
+      })
+      .catch(() => {
+        setUploadingVideo(false);
+        window.alert("Не удалось загрузить видео / Video upload failed.");
       });
   };
 
@@ -929,7 +1015,13 @@ function ColorRow({ color, onChange, onRemove, canRemove }) {
         />
         Комбинация из 2 цветов / Two-color combo
       </label>
-      <label className="w-full border border-black/15 rounded-lg px-2.5 py-2 text-sm flex items-center gap-1.5 cursor-pointer bg-white">
+
+      <input ref={photoInputRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
+      <button
+        type="button"
+        onClick={() => photoInputRef.current && photoInputRef.current.click()}
+        className="w-full border border-black/15 rounded-lg px-2.5 py-2 text-sm flex items-center gap-1.5 bg-white mb-1.5"
+      >
         {color.imageUrl ? (
           <img src={color.imageUrl} alt="" className="w-6 h-6 rounded object-cover flex-shrink-0" />
         ) : (
@@ -938,8 +1030,19 @@ function ColorRow({ color, onChange, onRemove, canRemove }) {
         <span className="truncate text-xs" style={{ color: color.imageUrl ? CHARCOAL : "rgba(0,0,0,0.4)" }}>
           {uploading ? "Загрузка..." : color.imageUrl ? "Фото загружено (нажмите, чтобы заменить)" : "Выбрать фото"}
         </span>
-        <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
-      </label>
+      </button>
+
+      <input ref={videoInputRef} type="file" accept="video/*" onChange={handleVideoChange} className="hidden" />
+      <button
+        type="button"
+        onClick={() => videoInputRef.current && videoInputRef.current.click()}
+        className="w-full border border-black/15 rounded-lg px-2.5 py-2 text-sm flex items-center gap-1.5 bg-white"
+      >
+        <Play size={14} className="flex-shrink-0 opacity-50" />
+        <span className="truncate text-xs" style={{ color: color.videoUrl ? CHARCOAL : "rgba(0,0,0,0.4)" }}>
+          {uploadingVideo ? "Загрузка..." : color.videoUrl ? "Видео загружено (нажмите, чтобы заменить)" : "Добавить видео (необязательно)"}
+        </span>
+      </button>
     </div>
   );
 }
@@ -1259,7 +1362,7 @@ export default function App() {
       ) : (
         <>
           {screen === "home" && <HomeScreen t={t} setScreen={setScreen} setActiveCategory={setActiveCategory} setActiveSeason={setActiveSeason} goAdmin={() => setView("admin")} homeImages={homeImages} />}
-          {screen === "category" && <CategoryScreen t={t} products={products} category={activeCategory} season={activeSeason} setSeason={setActiveSeason} openProduct={openProduct} setScreen={setScreen} />}
+          {screen === "category" && <CategoryScreen t={t} products={products} category={activeCategory} season={activeSeason} setSeason={setActiveSeason} setActiveCategory={setActiveCategory} openProduct={openProduct} setScreen={setScreen} />}
           {screen === "product" && activeProduct && <ProductScreen t={t} product={activeProduct} setScreen={setScreen} addToCart={addToCart} />}
           {screen === "cart" && <CartScreen t={t} cart={cart} removeFromCart={removeFromCart} setScreen={setScreen} />}
           {screen === "checkout" && <CheckoutScreen t={t} cart={cart} setScreen={setScreen} clearCart={clearCart} />}
@@ -1275,7 +1378,19 @@ export default function App() {
         </>
       )}
 
-      {screen !== "confirmation" && screen !== "checkout" && !loading && <BottomNav screen={screen} setScreen={setScreen} cartCount={cart.length} t={t} />}
+      {screen !== "confirmation" && screen !== "checkout" && !loading && (
+        <BottomNav
+          screen={screen}
+          setScreen={setScreen}
+          goCatalog={() => {
+            setActiveCategory("all");
+            setActiveSeason("all");
+            setScreen("category");
+          }}
+          cartCount={cart.length}
+          t={t}
+        />
+      )}
     </div>
   );
 }
