@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
   Globe,
@@ -29,12 +28,12 @@ import {
 
 /* ----------------------------------------------------------------
    PALETTE
-   Ink Plum #3A2432 · Ivory #F7F2EA · Brick Gold #B8834A
+   Ink Plum #1F3D2C · Ivory #F7F2EA · Brick Gold #3F6B4F
    Dusty Rose #C08A87 · Sage #7C8C6C · Charcoal #2A2420
    ---------------------------------------------------------------- */
-const INK = "#3A2432";
+const INK = "#1F3D2C";
 const IVORY = "#F7F2EA";
-const GOLD = "#B8834A";
+const GOLD = "#3F6B4F";
 const CHARCOAL = "#2A2420";
 
 const T = {
@@ -154,7 +153,7 @@ const SEED_PRODUCTS = [
     fabric: "Кашемир", freeSize: true, customSizes: "",
     hasFit: false, minHeight: 150, maxHeight: 180, maxWeight: 80, inStock: true,
     colors: [
-      { name: "Графит", hex: "#3A2432", imageUrl: "https://picsum.photos/seed/dina-graphite/500/650" },
+      { name: "Графит", hex: "#1F3D2C", imageUrl: "https://picsum.photos/seed/dina-graphite/500/650" },
       { name: "Бордовый", hex: "#7A3B3B", imageUrl: "https://picsum.photos/seed/dina-burgundy/500/650" },
     ],
   },
@@ -164,7 +163,7 @@ const SEED_PRODUCTS = [
     hasFit: true, minHeight: 150, maxHeight: 180, maxWeight: 85, inStock: true,
     colors: [
       { name: "Изумрудный", hex: "#3F5A48", imageUrl: "https://picsum.photos/seed/safiya-emerald/500/650" },
-      { name: "Пыльная роза", hex: "#B8834A", imageUrl: "https://picsum.photos/seed/safiya-gold/500/650" },
+      { name: "Пыльная роза", hex: "#3F6B4F", imageUrl: "https://picsum.photos/seed/safiya-gold/500/650" },
     ],
   },
 ];
@@ -288,7 +287,7 @@ function BottomNav({ screen, setScreen, goCatalog, cartCount, t }) {
     { key: "profile", icon: User, label: t.profile },
   ];
   return (
-    <div className="fixed bottom-0 inset-x-0 z-20 bg-[#F7F2EA] border-t border-[#3A2432]/10 flex justify-around py-2 max-w-md mx-auto">
+    <div className="fixed bottom-0 inset-x-0 z-20 bg-[#F7F2EA] border-t border-[#1F3D2C]/10 flex justify-around py-2 max-w-md mx-auto">
       {items.map(({ key, icon: Icon, label, badge }) => {
         const active = screen === key || (key === "catalog" && screen === "category");
         return (
@@ -299,7 +298,7 @@ function BottomNav({ screen, setScreen, goCatalog, cartCount, t }) {
           >
             <Icon size={20} strokeWidth={active ? 2.4 : 1.8} color={active ? GOLD : INK} />
             {badge > 0 && (
-              <span className="absolute -top-0.5 right-1 bg-[#B8834A] text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center">
+              <span className="absolute -top-0.5 right-1 bg-[#3F6B4F] text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center">
                 {badge}
               </span>
             )}
@@ -327,13 +326,13 @@ function FitGauge({ product, t }) {
   const leftPct = ((product.minHeight - scaleMin) / (scaleMax - scaleMin)) * 100;
   const widthPct = ((product.maxHeight - product.minHeight) / (scaleMax - scaleMin)) * 100;
   return (
-    <div className="bg-[#3A2432]/[0.04] rounded-2xl p-4 mt-4">
+    <div className="bg-[#1F3D2C]/[0.04] rounded-2xl p-4 mt-4">
       <div className="flex items-center gap-2 mb-1.5">
         <Ruler size={16} color={GOLD} />
         <span className="font-medium text-sm" style={{ color: CHARCOAL }}>{t.fitTitle}</span>
       </div>
       <p className="text-xs text-[#2A2420]/70 mb-3 leading-relaxed">{t.fitDesc}</p>
-      <div className="relative h-2 rounded-full bg-[#3A2432]/10 mb-2">
+      <div className="relative h-2 rounded-full bg-[#1F3D2C]/10 mb-2">
         <div className="absolute h-2 rounded-full" style={{ left: `${leftPct}%`, width: `${widthPct}%`, background: GOLD }} />
       </div>
       <div className="flex justify-between text-[11px] text-[#2A2420]/60 mb-3">
@@ -383,7 +382,7 @@ function HomeScreen({ t, setScreen, setActiveCategory, setActiveSeason, goAdmin,
         <div className="grid grid-cols-3 gap-3">
           {cats.map((c) => (
             <button key={c.key} onClick={() => { setActiveCategory(c.key); setActiveSeason("all"); setScreen("category"); }} className="flex flex-col items-center gap-2">
-              <div className="w-full aspect-square rounded-2xl bg-cover bg-center border border-[#3A2432]/10" style={{ backgroundImage: `url(${c.img})` }} />
+              <div className="w-full aspect-square rounded-2xl bg-cover bg-center border border-[#1F3D2C]/10" style={{ backgroundImage: `url(${c.img})` }} />
               <span className="text-xs font-medium" style={{ color: CHARCOAL }}>{c.label}</span>
             </button>
           ))}
@@ -467,7 +466,7 @@ function CategoryScreen({ t, products, category, season, setSeason, setActiveCat
               <div key={p.id} className="text-left">
                 <div className="relative mb-2">
                   <button onClick={() => openProduct(p)} className="w-full block text-left">
-                    <div className="w-full aspect-[3/4] rounded-2xl bg-cover bg-center border border-[#3A2432]/10" style={{
+                    <div className="w-full aspect-[3/4] rounded-2xl bg-cover bg-center border border-[#1F3D2C]/10" style={{
                       backgroundImage: p.colors?.[0]?.imageUrl ? `url(${p.colors[0].imageUrl})` : (p.colors?.[0]?.hex2 ? `linear-gradient(135deg, ${p.colors[0].hex} 50%, ${p.colors[0].hex2} 50%)` : undefined),
                       backgroundColor: p.colors?.[0]?.hex || "#eee",
                     }} />
@@ -677,7 +676,7 @@ function ProductScreen({ t, product, setScreen, addToCart, favorites, toggleFavo
         <FitGauge product={product} t={t} />
       </div>
 
-      <div className="fixed bottom-16 inset-x-0 max-w-md mx-auto px-4 py-3 bg-[#F7F2EA]/95 backdrop-blur border-t border-[#3A2432]/10">
+      <div className="fixed bottom-16 inset-x-0 max-w-md mx-auto px-4 py-3 bg-[#F7F2EA]/95 backdrop-blur border-t border-[#1F3D2C]/10">
         <button onClick={handleAdd} className="w-full py-3 rounded-full text-white font-medium flex items-center justify-center gap-2 active:opacity-90" style={{ background: GOLD }}>
           {justAdded ? (<><Check size={18} /> {t.added}</>) : t.addToCart}
         </button>
@@ -703,7 +702,7 @@ function FavoritesScreen({ t, products, favorites, toggleFavorite, openProduct, 
             <div key={p.id} className="text-left">
               <div className="relative mb-2">
                 <button onClick={() => openProduct(p)} className="w-full block text-left">
-                  <div className="w-full aspect-[3/4] rounded-2xl bg-cover bg-center border border-[#3A2432]/10" style={{
+                  <div className="w-full aspect-[3/4] rounded-2xl bg-cover bg-center border border-[#1F3D2C]/10" style={{
                     backgroundImage: p.colors?.[0]?.imageUrl ? `url(${p.colors[0].imageUrl})` : undefined,
                     backgroundColor: p.colors?.[0]?.hex || "#eee",
                   }} />
@@ -832,7 +831,7 @@ function CartScreen({ t, cart, removeFromCart, setScreen }) {
         <>
           <div className="px-4 mt-3 space-y-3">
             {cart.map((item, idx) => (
-              <div key={idx} className="flex gap-3 bg-white/60 rounded-2xl p-2.5 border border-[#3A2432]/10">
+              <div key={idx} className="flex gap-3 bg-white/60 rounded-2xl p-2.5 border border-[#1F3D2C]/10">
                 <div className="w-16 h-20 rounded-xl bg-cover bg-center flex-shrink-0" style={{
                   backgroundImage: item.color.imageUrl ? `url(${item.color.imageUrl})` : undefined, backgroundColor: item.color.hex,
                 }} />
@@ -845,7 +844,7 @@ function CartScreen({ t, cart, removeFromCart, setScreen }) {
               </div>
             ))}
           </div>
-          <div className="fixed bottom-16 inset-x-0 max-w-md mx-auto px-4 py-3 bg-[#F7F2EA]/95 backdrop-blur border-t border-[#3A2432]/10">
+          <div className="fixed bottom-16 inset-x-0 max-w-md mx-auto px-4 py-3 bg-[#F7F2EA]/95 backdrop-blur border-t border-[#1F3D2C]/10">
             <div className="flex justify-between text-sm mb-2">
               <span style={{ color: `${CHARCOAL}99` }}>{t.total}</span>
               <span className="font-medium" style={{ color: CHARCOAL }}>{money(total)}</span>
@@ -1049,7 +1048,7 @@ function CheckoutScreen({ t, cart, setScreen, clearCart, tgUserId }) {
         )}
         <div className="mb-2" />
 
-        <div className="flex items-center gap-2 border border-[#3A2432]/20 rounded-xl px-3 py-2.5 mb-2">
+        <div className="flex items-center gap-2 border border-[#1F3D2C]/20 rounded-xl px-3 py-2.5 mb-2">
           <MapPin size={16} color={INK} className="opacity-60" />
           <input
             value={address}
@@ -1060,7 +1059,7 @@ function CheckoutScreen({ t, cart, setScreen, clearCart, tgUserId }) {
           />
         </div>
 
-        <div className="bg-[#3A2432]/[0.04] rounded-xl px-3 py-2.5 flex items-start gap-2">
+        <div className="bg-[#1F3D2C]/[0.04] rounded-xl px-3 py-2.5 flex items-start gap-2">
           <MapPin size={16} color={GOLD} className="flex-shrink-0 mt-0.5" />
           <p className="text-[11px] leading-relaxed" style={{ color: `${CHARCOAL}99` }}>
             После нажатия «{t.placeOrder}» откроется чат с нами — там, пожалуйста, дополнительно отправьте вашу геометку через <b>📎 → Локация</b> (так мы сможем сразу передать её в Яндекс или BTS).
