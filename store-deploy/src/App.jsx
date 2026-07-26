@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
   Globe,
@@ -67,13 +66,22 @@ const T = {
     savedAddress: "Последний адрес доставки", noSavedAddress: "Пока нет сохранённого адреса",
     faqBanner: "Частые вопросы и информация о тканях", faqTitle: "Вопросы и ткани", faqEmpty: "Раздел пока пуст",
     faqTileLabel: "Вопросы",
+    deliveryYandexLabel: "Ташкент · Яндекс", deliveryBtsLabel: "Другой регион · BTS",
+    deliveryYandexDesc: "Доставка курьером Яндекс. Оплата за доставку — наличными курьеру при получении заказа.",
+    deliveryBtsDesc: "Доставка через BTS. Мы уточним ближайший пункт выдачи после получения заказа.",
+    phoneRequired: "Номер телефона (обязательно)", addressRequired: "Адрес доставки — улица, дом (обязательно)",
+    locationInstruction: "Пожалуйста, отправьте свою локацию через Telegram (📎 → Локация) в чате, который откроется после отправки заказа.",
+    policyDisclosure: "Ознакомлен(а) с условиями заказа: оформленный товар не подлежит возврату или обмену на другую модель, цвет или размер.",
+    submitHint: "Укажите телефон, адрес, прикрепите чек и подтвердите оба пункта ниже",
+    addressPlaceholder: "Улица, дом",
+    uploading: "Загрузка...", uploadCheckRequired: "Прикрепить чек оплаты (обязательно)",
     noProducts: "Пока нет товаров в этой категории", forOwners: "Панель для владельца магазина",
     backToShop: "← Вернуться в магазин",
   },
   en: {
     chooseLang: "Choose your language", tagline: "Modest fashion, made with care", continue: "Continue",
     home: "Home", catalog: "Catalog", cart: "Cart", orders: "Orders",
-    dresses: "Dresses", scarves: "Scarves", namaznik: "Namaznik",
+    dresses: "Dresses", scarves: "Scarves", namaznik: "Prayer garment",
     seasonWinter: "Autumn / Winter", seasonSummer: "Spring / Summer", newArrivals: "New arrivals", all: "All",
     color: "Color", size: "Size", fabric: "Fabric",
     fitTitle: "Will it fit me?", fitDesc: "Our pieces are oversized by design. Guideline by height and weight:",
@@ -97,6 +105,15 @@ const T = {
     savedAddress: "Last delivery address", noSavedAddress: "No saved address yet",
     faqBanner: "FAQ & fabric information", faqTitle: "FAQ & Fabrics", faqEmpty: "Nothing here yet",
     faqTileLabel: "FAQ",
+    deliveryYandexLabel: "Tashkent · Yandex", deliveryBtsLabel: "Other region · BTS",
+    deliveryYandexDesc: "Delivery by Yandex courier. Delivery fee paid in cash to the courier on arrival.",
+    deliveryBtsDesc: "Delivery via BTS. We'll confirm the nearest pickup point after receiving your order.",
+    phoneRequired: "Phone number (required)", addressRequired: "Delivery address — street, house number (required)",
+    locationInstruction: "Please share your live location via Telegram (📎 → Location) in the chat that opens after you send the order.",
+    policyDisclosure: "I confirm I understand: ordered items cannot be returned or exchanged for a different model, color, or size.",
+    submitHint: "Fill in phone, address, receipt, and confirm both checkboxes below",
+    addressPlaceholder: "Street, house number",
+    uploading: "Uploading...", uploadCheckRequired: "Attach payment receipt (required)",
     noProducts: "No products in this category yet", forOwners: "Store owner panel",
     backToShop: "← Back to shop",
   },
@@ -123,10 +140,19 @@ const T = {
     notSureChat: "O'lcham haqida shubhangiz bormi? Biz bilan yozing",
     fabricMore: "Mato haqida batafsil →",
     favorites: "Sevimlilar", noFavorites: "Hali sevimlilar yo'q", noFavoritesSub: "Yoqqan mahsulotni saqlash uchun ♥ ni bosing",
-    profile: "Profil", chatWithAdmin: "Biz bilan yozing", myOrders: "Buyurtmalarim", myOrdersSub: "Buyurtma tarixi buyurtma berganingizdan keyin shu yerda paydo bo'ladi.",
+    profile: "Profil", chatWithAdmin: "Adminga yozing", myOrders: "Buyurtmalarim", myOrdersSub: "Buyurtma tarixi buyurtma berganingizdan keyin shu yerda paydo bo'ladi.",
     savedAddress: "Oxirgi yetkazib berish manzili", noSavedAddress: "Hali saqlangan manzil yo'q",
     faqBanner: "Savol-javob va mato haqida", faqTitle: "Savol-javob va mato", faqEmpty: "Hozircha bo'sh",
     faqTileLabel: "Savol-javob",
+    deliveryYandexLabel: "Toshkent · Yandex", deliveryBtsLabel: "Boshqa hudud · BTS",
+    deliveryYandexDesc: "Yandex kuryeri orqali yetkazib berish. Yetkazib berish narxi kuryerga naqd to'lanadi.",
+    deliveryBtsDesc: "BTS orqali yetkazib berish. Buyurtmani qabul qilgach, eng yaqin punktni aniqlaymiz.",
+    phoneRequired: "Telefon raqami (majburiy)", addressRequired: "Yetkazib berish manzili — ko'cha, uy (majburiy)",
+    locationInstruction: "Iltimos, buyurtma yuborilgach ochiladigan chatda Telegram orqali (📎 → Lokatsiya) joylashuvingizni yuboring.",
+    policyDisclosure: "Buyurtma shartlari bilan tanishdim: buyurtma qilingan mahsulot boshqa model, rang yoki o'lchamga almashtirilmaydi va qaytarilmaydi.",
+    submitHint: "Telefon, manzil, chekni kiriting va quyidagi ikkala bandni tasdiqlang",
+    addressPlaceholder: "Ko'cha, uy",
+    uploading: "Yuklanmoqda...", uploadCheckRequired: "To'lov chekini biriktirish (majburiy)",
     noProducts: "Bu toifada hali mahsulotlar yo'q", forOwners: "Do'kon egasi paneli",
     backToShop: "← Do'konga qaytish",
   },
@@ -375,7 +401,8 @@ const DEFAULT_HOME_IMAGES = {
   bannerSummer: "https://picsum.photos/seed/banner-summer/400/300",
 };
 
-function HomeScreen({ t, setScreen, setActiveCategory, setActiveSeason, goAdmin, homeImages }) {
+function HomeScreen({ t, lang, setLang, setScreen, setActiveCategory, setActiveSeason, goAdmin, homeImages }) {
+  const [langMenuOpen, setLangMenuOpen] = useState(false);
   const imgs = { ...DEFAULT_HOME_IMAGES, ...(homeImages || {}) };
   const cats = [
     { key: "dresses", label: t.dresses, img: imgs.dresses },
@@ -385,14 +412,37 @@ function HomeScreen({ t, setScreen, setActiveCategory, setActiveSeason, goAdmin,
   ];
   return (
     <div className="pb-24">
-      <div className="pt-5 pb-2 px-5 text-center">
-        <h1 className="font-serif text-3xl tracking-[0.15em]" style={{ color: INK }}>SAFHA</h1>
-        <p className="text-xs tracking-wide mt-0.5" style={{ color: `${CHARCOAL}80` }}>{t.tagline}</p>
-      </div>
-      <div className="relative h-40 flex items-end p-5" style={{
+      <div className="relative h-40 flex items-end p-4" style={{
         backgroundImage: `linear-gradient(180deg, rgba(74,58,22,0.03), rgba(74,58,22,0.4)), url(${imgs.hero})`,
         backgroundSize: "cover", backgroundPosition: "center",
       }}>
+        <div className="absolute top-3 right-3">
+          <button
+            onClick={() => setLangMenuOpen(!langMenuOpen)}
+            className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium"
+            style={{ background: "rgba(255,255,255,0.85)", color: INK }}
+          >
+            <Globe size={12} /> {lang.toUpperCase()}
+          </button>
+          {langMenuOpen && (
+            <div className="absolute top-8 right-0 rounded-xl overflow-hidden shadow-lg" style={{ background: IVORY }}>
+              {["ru", "en", "uz"].map((code) => (
+                <button
+                  key={code}
+                  onClick={() => { setLang(code); setLangMenuOpen(false); }}
+                  className="block w-full px-4 py-2 text-xs font-medium text-left whitespace-nowrap"
+                  style={{ color: code === lang ? GOLD : CHARCOAL }}
+                >
+                  {code.toUpperCase()}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+        <div>
+          <h1 className="font-serif text-lg tracking-[0.1em]" style={{ color: IVORY }}>SAFHA</h1>
+          <p className="text-[10px] tracking-wide" style={{ color: `${IVORY}CC` }}>{t.tagline}</p>
+        </div>
       </div>
       <div className="px-4 mt-4">
         <div className="flex gap-3">
@@ -1095,7 +1145,7 @@ function CheckoutScreen({ t, cart, setScreen, clearCart, tgUserId }) {
               borderColor: deliveryMethod === "yandex" ? INK : "rgba(31,61,44,0.2)",
             }}
           >
-            Ташкент · Яндекс
+            {t.deliveryYandexLabel}
           </button>
           <button
             onClick={() => setDeliveryMethod("bts")}
@@ -1106,20 +1156,21 @@ function CheckoutScreen({ t, cart, setScreen, clearCart, tgUserId }) {
               borderColor: deliveryMethod === "bts" ? INK : "rgba(31,61,44,0.2)",
             }}
           >
-            Другой регион · BTS
+            {t.deliveryBtsLabel}
           </button>
         </div>
 
         {deliveryMethod === "yandex" ? (
           <p className="text-sm leading-relaxed mb-3" style={{ color: `${CHARCOAL}99` }}>
-            Доставка курьером Яндекс. Оплата за доставку — наличными курьеру при получении заказа.
+            {t.deliveryYandexDesc}
           </p>
         ) : (
           <p className="text-sm leading-relaxed mb-3" style={{ color: `${CHARCOAL}99` }}>
-            Доставка через BTS. Мы уточним ближайший пункт выдачи после получения заказа.
+            {t.deliveryBtsDesc}
           </p>
         )}
 
+        <p className="text-xs font-medium mb-1" style={{ color: "#9C5F5C" }}>{t.phoneRequired}</p>
         <div className="flex items-center gap-2 border rounded-xl px-3 py-2.5" style={{
           borderColor: phone.length > 0 && !phoneValid ? "#9C5F5C" : "rgba(31,61,44,0.2)",
         }}>
@@ -1133,12 +1184,13 @@ function CheckoutScreen({ t, cart, setScreen, clearCart, tgUserId }) {
         )}
         <div className="mb-2" />
 
+        <p className="text-xs font-medium mb-1" style={{ color: "#9C5F5C" }}>{t.addressRequired}</p>
         <div className="flex items-center gap-2 border border-[#1F3D2C]/20 rounded-xl px-3 py-2.5 mb-2">
           <MapPin size={16} color={INK} className="opacity-60" />
           <input
             value={address}
             onChange={(e) => setAddress(e.target.value)}
-            placeholder="Адрес доставки (улица, дом) / Delivery address"
+            placeholder={t.addressPlaceholder}
             className="flex-1 bg-transparent text-base outline-none"
             style={{ color: CHARCOAL }}
           />
@@ -1147,7 +1199,7 @@ function CheckoutScreen({ t, cart, setScreen, clearCart, tgUserId }) {
         <div className="bg-[#1F3D2C]/[0.04] rounded-xl px-3 py-2.5 flex items-start gap-2">
           <MapPin size={16} color={GOLD} className="flex-shrink-0 mt-0.5" />
           <p className="text-xs leading-relaxed" style={{ color: `${CHARCOAL}99` }}>
-            После нажатия «{t.placeOrder}» откроется чат с нами — там, пожалуйста, дополнительно отправьте вашу геометку через <b>📎 → Локация</b> (так мы сможем сразу передать её в Яндекс или BTS).
+            {t.locationInstruction}
           </p>
         </div>
       </div>
@@ -1203,7 +1255,7 @@ function CheckoutScreen({ t, cart, setScreen, clearCart, tgUserId }) {
           }}
         >
           {receiptUrl ? <Check size={16} /> : <Upload size={16} />}
-          {uploadingReceipt ? "Загрузка..." : receiptUrl ? "Чек загружен" : "Прикрепить чек оплаты (обязательно)"}
+          {uploadingReceipt ? t.uploading : receiptUrl ? t.uploadedCheck : t.uploadCheckRequired}
         </button>
 
         {receiptUrl && (
@@ -1216,7 +1268,7 @@ function CheckoutScreen({ t, cart, setScreen, clearCart, tgUserId }) {
                 className="mt-0.5 flex-shrink-0"
               />
               <span className="text-sm leading-relaxed" style={{ color: CHARCOAL }}>
-                Пожалуйста, отправьте свою локацию через Telegram (📎 → Локация) в чате, который откроется после отправки заказа.
+                {t.locationInstruction}
               </span>
             </label>
 
@@ -1228,7 +1280,7 @@ function CheckoutScreen({ t, cart, setScreen, clearCart, tgUserId }) {
                 className="mt-0.5 flex-shrink-0"
               />
               <span className="text-sm leading-relaxed" style={{ color: CHARCOAL }}>
-                Ознакомлен(а) с условиями заказа: оформленный товар не подлежит возврату или обмену на другую модель, цвет или размер.
+                {t.policyDisclosure}
               </span>
             </label>
           </>
@@ -1247,7 +1299,7 @@ function CheckoutScreen({ t, cart, setScreen, clearCart, tgUserId }) {
         </button>
         {!canSubmit && (
           <p className="text-xs text-center mt-1.5" style={{ color: "#9C5F5C" }}>
-            Укажите телефон, адрес, прикрепите чек и подтвердите оба пункта ниже / Fill in phone, address, receipt, and confirm both checkboxes above
+            {t.submitHint}
           </p>
         )}
       </div>
@@ -1858,7 +1910,7 @@ export default function App() {
         <p className="text-center py-24 text-base" style={{ color: `${CHARCOAL}66` }}>Загрузка...</p>
       ) : (
         <>
-          {screen === "home" && <HomeScreen t={t} setScreen={setScreen} setActiveCategory={setActiveCategory} setActiveSeason={setActiveSeason} goAdmin={() => setView("admin")} homeImages={homeImages} />}
+          {screen === "home" && <HomeScreen t={t} lang={lang} setLang={setLang} setScreen={setScreen} setActiveCategory={setActiveCategory} setActiveSeason={setActiveSeason} goAdmin={() => setView("admin")} homeImages={homeImages} />}
           {screen === "category" && <CategoryScreen t={t} products={products} category={activeCategory} season={activeSeason} setSeason={setActiveSeason} setActiveCategory={setActiveCategory} openProduct={openProduct} setScreen={setScreen} favorites={favorites} toggleFavorite={toggleFavorite} />}
           {screen === "product" && activeProduct && <ProductScreen t={t} product={activeProduct} setScreen={setScreen} addToCart={addToCart} favorites={favorites} toggleFavorite={toggleFavorite} />}
           {screen === "cart" && <CartScreen t={t} cart={cart} removeFromCart={removeFromCart} setScreen={setScreen} />}
