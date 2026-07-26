@@ -34,7 +34,7 @@ import {
    Dusty Rose #C08A87 · Sage #7C8C6C · Charcoal #2A2420
    ---------------------------------------------------------------- */
 const INK = "#1F3D2C";
-const IVORY = "#F7F2EA";
+const IVORY = "#F5EEDF";
 const GOLD = "#3F6B4F";
 const CHARCOAL = "#2A2420";
 
@@ -301,18 +301,19 @@ function BottomNav({ screen, setScreen, goCatalog, cartCount, t }) {
     { key: "profile", icon: User, label: t.profile },
   ];
   return (
-    <div className="fixed bottom-0 inset-x-0 z-20 bg-[#F7F2EA] border-t border-[#1F3D2C]/10 flex justify-around py-2 max-w-md mx-auto">
+    <div className="fixed bottom-0 inset-x-0 z-20 border-t border-[#1F3D2C]/10 flex justify-around py-2 max-w-md mx-auto" style={{ background: IVORY }}>
       {items.map(({ key, icon: Icon, label, badge }) => {
         const active = screen === key || (key === "catalog" && screen === "category");
         return (
           <button
             key={key}
             onClick={() => (key === "catalog" ? goCatalog() : setScreen(key))}
-            className="flex flex-col items-center gap-0.5 px-3 py-1 relative"
+            className="flex flex-col items-center gap-0.5 px-3 py-1.5 relative rounded-2xl"
+            style={{ background: active ? `${GOLD}1F` : "transparent" }}
           >
             <Icon size={20} strokeWidth={active ? 2.4 : 1.8} color={active ? GOLD : INK} />
             {badge > 0 && (
-              <span className="absolute -top-0.5 right-1 bg-[#3F6B4F] text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+              <span className="absolute top-0 right-1.5 bg-[#3F6B4F] text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
                 {badge}
               </span>
             )}
@@ -383,16 +384,32 @@ function HomeScreen({ t, setScreen, setActiveCategory, setActiveSeason, goAdmin,
   ];
   return (
     <div className="pb-24">
-      <div className="pt-6 pb-3 px-5 text-center">
+      <div className="pt-5 pb-2 px-5 text-center">
         <h1 className="font-serif text-3xl tracking-[0.15em]" style={{ color: INK }}>SAFHA</h1>
         <p className="text-xs tracking-wide mt-0.5" style={{ color: `${CHARCOAL}80` }}>{t.tagline}</p>
       </div>
-      <div className="relative h-56 flex items-end p-5" style={{
+      <div className="relative h-40 flex items-end p-5" style={{
         backgroundImage: `linear-gradient(180deg, rgba(31,61,44,0.15), rgba(31,61,44,0.85)), url(${imgs.hero})`,
         backgroundSize: "cover", backgroundPosition: "center",
       }}>
       </div>
-      <div className="px-4 mt-5">
+      <div className="px-4 mt-4">
+        <div className="flex gap-3">
+          <button onClick={() => { setActiveCategory("dresses"); setActiveSeason("winter"); setScreen("category"); }} className="flex-1 rounded-2xl overflow-hidden relative h-24" style={{
+            backgroundImage: `linear-gradient(180deg, rgba(31,61,44,0.1), rgba(31,61,44,0.75)), url(${imgs.bannerWinter})`,
+            backgroundSize: "cover", backgroundPosition: "center",
+          }}>
+            <span className="absolute bottom-2.5 left-3 font-serif text-base font-semibold" style={{ color: IVORY }}>{t.seasonWinter}</span>
+          </button>
+          <button onClick={() => { setActiveCategory("dresses"); setActiveSeason("summer"); setScreen("category"); }} className="flex-1 rounded-2xl overflow-hidden relative h-24" style={{
+            backgroundImage: `linear-gradient(180deg, rgba(31,61,44,0.1), rgba(31,61,44,0.75)), url(${imgs.bannerSummer})`,
+            backgroundSize: "cover", backgroundPosition: "center",
+          }}>
+            <span className="absolute bottom-2.5 left-3 font-serif text-base font-semibold" style={{ color: IVORY }}>{t.seasonSummer}</span>
+          </button>
+        </div>
+      </div>
+      <div className="px-4 mt-4">
         <h2 className="font-serif text-xl mb-3" style={{ color: CHARCOAL }}>{t.catalog}</h2>
         <div className="grid grid-cols-3 gap-3">
           {cats.map((c) => (
@@ -413,22 +430,6 @@ function HomeScreen({ t, setScreen, setActiveCategory, setActiveSeason, goAdmin,
               <span className="font-serif text-base font-semibold" style={{ color: INK }}>{c.label}</span>
             </button>
           ))}
-        </div>
-      </div>
-      <div className="px-4 mt-6">
-        <div className="flex gap-3">
-          <button onClick={() => { setActiveCategory("dresses"); setActiveSeason("winter"); setScreen("category"); }} className="flex-1 rounded-2xl overflow-hidden relative h-28" style={{
-            backgroundImage: `linear-gradient(180deg, rgba(31,61,44,0.1), rgba(31,61,44,0.75)), url(${imgs.bannerWinter})`,
-            backgroundSize: "cover", backgroundPosition: "center",
-          }}>
-            <span className="absolute bottom-2.5 left-3 font-serif text-base font-semibold" style={{ color: IVORY }}>{t.seasonWinter}</span>
-          </button>
-          <button onClick={() => { setActiveCategory("dresses"); setActiveSeason("summer"); setScreen("category"); }} className="flex-1 rounded-2xl overflow-hidden relative h-28" style={{
-            backgroundImage: `linear-gradient(180deg, rgba(31,61,44,0.1), rgba(31,61,44,0.75)), url(${imgs.bannerSummer})`,
-            backgroundSize: "cover", backgroundPosition: "center",
-          }}>
-            <span className="absolute bottom-2.5 left-3 font-serif text-base font-semibold" style={{ color: IVORY }}>{t.seasonSummer}</span>
-          </button>
         </div>
       </div>
       <div className="px-4 mt-8 text-center">
@@ -728,7 +729,7 @@ function ProductScreen({ t, product, setScreen, addToCart, favorites, toggleFavo
         </div>
       )}
 
-      <div className="fixed bottom-16 inset-x-0 max-w-md mx-auto px-4 py-3 bg-[#F7F2EA]/95 backdrop-blur border-t border-[#1F3D2C]/10">
+      <div className="fixed bottom-16 inset-x-0 max-w-md mx-auto px-4 py-3 bg-[#F5EEDF]/95 backdrop-blur border-t border-[#1F3D2C]/10">
         <button onClick={handleAdd} className="w-full py-3 rounded-full text-white font-medium flex items-center justify-center gap-2 active:opacity-90" style={{ background: GOLD }}>
           {justAdded ? (<><Check size={18} /> {t.added}</>) : t.addToCart}
         </button>
@@ -924,7 +925,7 @@ function CartScreen({ t, cart, removeFromCart, setScreen }) {
               </div>
             ))}
           </div>
-          <div className="fixed bottom-16 inset-x-0 max-w-md mx-auto px-4 py-3 bg-[#F7F2EA]/95 backdrop-blur border-t border-[#1F3D2C]/10">
+          <div className="fixed bottom-16 inset-x-0 max-w-md mx-auto px-4 py-3 bg-[#F5EEDF]/95 backdrop-blur border-t border-[#1F3D2C]/10">
             <div className="flex justify-between text-base mb-2">
               <span style={{ color: `${CHARCOAL}99` }}>{t.total}</span>
               <span className="font-medium" style={{ color: CHARCOAL }}>{money(total)}</span>
