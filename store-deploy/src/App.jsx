@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
   Globe,
@@ -713,7 +714,12 @@ function CheckoutScreen({ t, cart, setScreen, clearCart }) {
       fullLines.push("");
       fullLines.push("Пожалуйста, также отправьте геометку через 📎 → Локация в этом чате.");
       const locationMsg = fullLines.join("\n");
-      window.open("https://t.me/" + ADMIN_TELEGRAM_USERNAME + "?text=" + encodeURIComponent(locationMsg), "_blank");
+      const tgUrl = "https://t.me/" + ADMIN_TELEGRAM_USERNAME + "?text=" + encodeURIComponent(locationMsg);
+      if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openTelegramLink) {
+        window.Telegram.WebApp.openTelegramLink(tgUrl);
+      } else {
+        window.open(tgUrl, "_blank");
+      }
 
       clearCart();
       setScreen("confirmation");
