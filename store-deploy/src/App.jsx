@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
   Globe,
@@ -10,6 +11,7 @@ import {
   User,
   MessageCircle,
   HelpCircle,
+  Copy,
   Check,
   MapPin,
   Phone,
@@ -616,6 +618,7 @@ function ProductScreen({ t, product, setScreen, addToCart, favorites, toggleFavo
   const [colorIdx, setColorIdx] = useState(0);
   const [zoomOpen, setZoomOpen] = useState(false);
   const [videoOpen, setVideoOpen] = useState(false);
+  const [fabricInfoOpen, setFabricInfoOpen] = useState(false);
   const sizes = product.freeSize ? ["freeSize"] : (product.customSizes || "").split(",").map((s) => s.trim()).filter(Boolean);
   const [size, setSize] = useState(sizes[0] || "freeSize");
   const [justAdded, setJustAdded] = useState(false);
@@ -662,7 +665,7 @@ function ProductScreen({ t, product, setScreen, addToCart, favorites, toggleFavo
         <p className="font-medium mt-1" style={{ color: GOLD }}>{money(product.price)}</p>
 
         <div className="mt-5">
-          <p className="text-xs uppercase tracking-wider mb-2" style={{ color: `${CHARCOAL}80` }}>{t.color}: <span style={{ color: CHARCOAL }}>{color.name}</span></p>
+          <p className="text-sm font-semibold uppercase tracking-wide mb-2" style={{ color: CHARCOAL }}>{t.color}: <span style={{ color: GOLD }}>{color.name}</span></p>
           <div className="flex gap-2">
             {product.colors.map((c, i) => (
               <button
@@ -679,7 +682,7 @@ function ProductScreen({ t, product, setScreen, addToCart, favorites, toggleFavo
         </div>
 
         <div className="mt-5">
-          <p className="text-xs uppercase tracking-wider mb-2" style={{ color: `${CHARCOAL}80` }}>{t.size}</p>
+          <p className="text-sm font-semibold uppercase tracking-wide mb-2" style={{ color: CHARCOAL }}>{t.size}</p>
           <div className="flex gap-2">
             {sizes.map((s) => (
               <button key={s} onClick={() => setSize(s)} className="px-4 py-1.5 rounded-full text-sm border" style={{
@@ -693,7 +696,7 @@ function ProductScreen({ t, product, setScreen, addToCart, favorites, toggleFavo
         </div>
 
         <div className="mt-5">
-          <p className="text-xs uppercase tracking-wider mb-1.5" style={{ color: `${CHARCOAL}80` }}>{t.fabric}</p>
+          <p className="text-sm font-semibold uppercase tracking-wide mb-1.5" style={{ color: CHARCOAL }}>{t.fabric}</p>
           <div className="flex items-center justify-between flex-wrap gap-2">
             <span
               className="inline-block px-3 py-1.5 rounded-full text-sm font-medium"
@@ -701,14 +704,28 @@ function ProductScreen({ t, product, setScreen, addToCart, favorites, toggleFavo
             >
               {product.fabric}
             </span>
-            <button onClick={() => setScreen("faq")} className="text-xs font-medium underline" style={{ color: GOLD }}>
-              {t.fabricMore}
-            </button>
+            {product.fabricDetails && (
+              <button onClick={() => setFabricInfoOpen(true)} className="text-xs font-medium underline" style={{ color: GOLD }}>
+                {t.fabricMore}
+              </button>
+            )}
           </div>
         </div>
 
         <FitGauge product={product} t={t} />
       </div>
+
+      {fabricInfoOpen && (
+        <div className="fixed inset-0 z-50 bg-black/40 flex items-end sm:items-center justify-center" onClick={() => setFabricInfoOpen(false)}>
+          <div className="w-full sm:max-w-md sm:rounded-3xl rounded-t-3xl max-h-[80vh] overflow-y-auto p-5" style={{ background: IVORY }} onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="font-serif text-lg" style={{ color: CHARCOAL }}>{t.fabric}: {product.fabric}</h2>
+              <button onClick={() => setFabricInfoOpen(false)}><X size={20} color={CHARCOAL} /></button>
+            </div>
+            <p className="text-sm leading-relaxed" style={{ color: `${CHARCOAL}CC` }}>{product.fabricDetails}</p>
+          </div>
+        </div>
+      )}
 
       <div className="fixed bottom-16 inset-x-0 max-w-md mx-auto px-4 py-3 bg-[#F7F2EA]/95 backdrop-blur border-t border-[#1F3D2C]/10">
         <button onClick={handleAdd} className="w-full py-3 rounded-full text-white font-medium flex items-center justify-center gap-2 active:opacity-90" style={{ background: GOLD }}>
@@ -1149,15 +1166,26 @@ function CheckoutScreen({ t, cart, setScreen, clearCart, tgUserId }) {
               doCopy();
             }
           }}
-          className="w-full text-left rounded-2xl p-4 mb-3 relative"
+          className="w-full text-left rounded-2xl p-4 mb-3"
           style={{ background: INK }}
         >
-          <p className="text-[10px] uppercase tracking-wider mb-1" style={{ color: `${IVORY}80` }}>{t.cardNumber}</p>
-          <p className="font-mono text-lg tracking-wider" style={{ color: IVORY }}>{CARD_NUMBER_DISPLAY}</p>
-          <p className="text-xs mt-1" style={{ color: `${IVORY}90` }}>{CARD_HOLDER_NAME}</p>
-          <span className="absolute top-4 right-4 text-[10px]" style={{ color: cardCopied ? "#8FBF9F" : `${IVORY}70` }}>
-            {cardCopied ? "Скопировано ✓" : "Нажмите, чтобы скопировать"}
-          </span>
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-[10px] uppercase tracking-wider mb-1" style={{ color: `${IVORY}80` }}>{t.cardNumber}</p>
+              <p className="font-mono text-lg tracking-wider" style={{ color: IVORY }}>{CARD_NUMBER_DISPLAY}</p>
+              <p className="text-xs mt-1" style={{ color: `${IVORY}90` }}>{CARD_HOLDER_NAME}</p>
+            </div>
+            <span
+              className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-full flex-shrink-0"
+              style={{
+                background: cardCopied ? "#5C6B4E" : `${IVORY}25`,
+                color: "#fff",
+              }}
+            >
+              {cardCopied ? <Check size={14} /> : <Copy size={14} />}
+              {cardCopied ? "Скопировано" : "Копировать"}
+            </span>
+          </div>
         </button>
 
         <input ref={receiptInputRef} type="file" accept="image/*" onChange={handleReceiptChange} className="hidden" />
@@ -1369,7 +1397,7 @@ function ColorRow({ color, onChange, onRemove, canRemove }) {
 }
 
 const emptyProduct = () => ({
-  id: "p_" + Date.now(), category: "dresses", season: "all", name: "", price: "", fabric: "",
+  id: "p_" + Date.now(), category: "dresses", season: "all", name: "", price: "", fabric: "", fabricDetails: "",
   hasFit: true, minHeight: 150, maxHeight: 175, maxWeight: 70, freeSize: true, customSizes: "",
   inStock: true, colors: [{ name: "", hex: "#4A342A", imageUrl: "" }],
 });
@@ -1433,8 +1461,16 @@ function ProductForm({ initial, onCancel, onSaved, showToast }) {
         </div>
         <label className="block text-xs uppercase tracking-wide text-black/50 mb-1">Цена (сум)</label>
         <input type="number" value={p.price} onChange={(e) => update({ price: e.target.value })} placeholder="350000" className="w-full border border-black/15 rounded-xl px-3 py-2.5 text-sm mb-4" />
-        <label className="block text-xs uppercase tracking-wide text-black/50 mb-1">Ткань</label>
+        <label className="block text-xs uppercase tracking-wide text-black/50 mb-1">Ткань (короткое название)</label>
         <input value={p.fabric} onChange={(e) => update({ fabric: e.target.value })} placeholder="Например: плотный трикотаж, 95% хлопок" className="w-full border border-black/15 rounded-xl px-3 py-2.5 text-sm mb-4" />
+        <label className="block text-xs uppercase tracking-wide text-black/50 mb-1">Подробнее о ткани (для кнопки «Подробнее»)</label>
+        <textarea
+          value={p.fabricDetails || ""}
+          onChange={(e) => update({ fabricDetails: e.target.value })}
+          rows={4}
+          placeholder="Например: 100% натуральный хлопок, дышащая ткань, не требует глажки, подходит для жаркого климата..."
+          className="w-full border border-black/15 rounded-xl px-3 py-2.5 text-sm mb-4"
+        />
         <div className="mb-4">
           <label className="flex items-center gap-2 text-sm mb-2">
             <input type="checkbox" checked={p.freeSize} onChange={(e) => update({ freeSize: e.target.checked })} />
