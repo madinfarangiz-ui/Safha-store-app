@@ -65,6 +65,7 @@ const T = {
     profile: "Профиль", chatWithAdmin: "Написать нам", myOrders: "Мои заказы", myOrdersSub: "История заказов появится здесь после оформления покупок.",
     savedAddress: "Последний адрес доставки", noSavedAddress: "Пока нет сохранённого адреса",
     faqBanner: "Частые вопросы и информация о тканях", faqTitle: "Вопросы и ткани", faqEmpty: "Раздел пока пуст",
+    faqTileLabel: "Вопросы",
     noProducts: "Пока нет товаров в этой категории", forOwners: "Панель для владельца магазина",
     backToShop: "← Вернуться в магазин",
   },
@@ -94,6 +95,7 @@ const T = {
     profile: "Profile", chatWithAdmin: "Chat with us", myOrders: "My orders", myOrdersSub: "Your order history will appear here after you place an order.",
     savedAddress: "Last delivery address", noSavedAddress: "No saved address yet",
     faqBanner: "FAQ & fabric information", faqTitle: "FAQ & Fabrics", faqEmpty: "Nothing here yet",
+    faqTileLabel: "FAQ",
     noProducts: "No products in this category yet", forOwners: "Store owner panel",
     backToShop: "← Back to shop",
   },
@@ -123,6 +125,7 @@ const T = {
     profile: "Profil", chatWithAdmin: "Biz bilan yozing", myOrders: "Buyurtmalarim", myOrdersSub: "Buyurtma tarixi buyurtma berganingizdan keyin shu yerda paydo bo'ladi.",
     savedAddress: "Oxirgi yetkazib berish manzili", noSavedAddress: "Hali saqlangan manzil yo'q",
     faqBanner: "Savol-javob va mato haqida", faqTitle: "Savol-javob va mato", faqEmpty: "Hozircha bo'sh",
+    faqTileLabel: "Savol-javob",
     noProducts: "Bu toifada hali mahsulotlar yo'q", forOwners: "Do'kon egasi paneli",
     backToShop: "← Do'konga qaytish",
   },
@@ -279,7 +282,7 @@ function Toast({ message, kind }) {
   if (!message) return null;
   return (
     <div
-      className="fixed top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-full text-sm font-medium flex items-center gap-2 shadow-lg text-white"
+      className="fixed top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-full text-base font-medium flex items-center gap-2 shadow-lg text-white"
       style={{ background: kind === "error" ? "#9C5F5C" : "#5C6B4E" }}
     >
       {kind === "error" ? <AlertCircle size={16} /> : <CheckCircle2 size={16} />}
@@ -309,11 +312,11 @@ function BottomNav({ screen, setScreen, goCatalog, cartCount, t }) {
           >
             <Icon size={20} strokeWidth={active ? 2.4 : 1.8} color={active ? GOLD : INK} />
             {badge > 0 && (
-              <span className="absolute -top-0.5 right-1 bg-[#3F6B4F] text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center">
+              <span className="absolute -top-0.5 right-1 bg-[#3F6B4F] text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
                 {badge}
               </span>
             )}
-            <span className={`text-[10px] ${active ? "font-medium" : ""}`} style={{ color: active ? GOLD : `${CHARCOAL}99` }}>
+            <span className={`text-xs ${active ? "font-medium" : ""}`} style={{ color: active ? GOLD : `${CHARCOAL}99` }}>
               {label}
             </span>
           </button>
@@ -325,9 +328,9 @@ function BottomNav({ screen, setScreen, goCatalog, cartCount, t }) {
 
 function SeasonTag({ season, t }) {
   if (season === "winter")
-    return <span className="text-[10px] uppercase tracking-wider bg-[#7C8C6C]/15 text-[#5C6B4E] px-2 py-0.5 rounded-full">{t.seasonWinter}</span>;
+    return <span className="text-xs uppercase tracking-wider bg-[#7C8C6C]/15 text-[#5C6B4E] px-2 py-0.5 rounded-full">{t.seasonWinter}</span>;
   if (season === "summer")
-    return <span className="text-[10px] uppercase tracking-wider bg-[#C08A87]/15 text-[#9C5F5C] px-2 py-0.5 rounded-full">{t.seasonSummer}</span>;
+    return <span className="text-xs uppercase tracking-wider bg-[#C08A87]/15 text-[#9C5F5C] px-2 py-0.5 rounded-full">{t.seasonSummer}</span>;
   return null;
 }
 
@@ -340,20 +343,20 @@ function FitGauge({ product, t }) {
     <div className="bg-[#1F3D2C]/[0.04] rounded-2xl p-4 mt-4">
       <div className="flex items-center gap-2 mb-1.5">
         <Ruler size={16} color={GOLD} />
-        <span className="font-medium text-sm" style={{ color: CHARCOAL }}>{t.fitTitle}</span>
+        <span className="font-medium text-base" style={{ color: CHARCOAL }}>{t.fitTitle}</span>
       </div>
-      <p className="text-xs text-[#2A2420]/70 mb-3 leading-relaxed">{t.fitDesc}</p>
+      <p className="text-sm text-[#2A2420]/70 mb-3 leading-relaxed">{t.fitDesc}</p>
       <div className="relative h-2 rounded-full bg-[#1F3D2C]/10 mb-2">
         <div className="absolute h-2 rounded-full" style={{ left: `${leftPct}%`, width: `${widthPct}%`, background: GOLD }} />
       </div>
-      <div className="flex justify-between text-[11px] text-[#2A2420]/60 mb-3">
+      <div className="flex justify-between text-xs text-[#2A2420]/60 mb-3">
         <span>{scaleMin}cm</span><span>{scaleMax}cm</span>
       </div>
-      <div className="flex gap-4 text-xs" style={{ color: CHARCOAL }}>
+      <div className="flex gap-4 text-sm" style={{ color: CHARCOAL }}>
         <div><span className="text-[#2A2420]/50">{t.height}: </span><span className="font-medium">{t.fitFrom} {product.minHeight}–{product.maxHeight}cm</span></div>
         <div><span className="text-[#2A2420]/50">{t.weightUpTo}: </span><span className="font-medium">{product.maxWeight}kg</span></div>
       </div>
-      <a href={"https://t.me/" + ADMIN_TELEGRAM_USERNAME} target="_blank" rel="noreferrer" className="text-[11px] mt-2 italic underline block" style={{ color: "#9C5F5C" }}>
+      <a href={"https://t.me/" + ADMIN_TELEGRAM_USERNAME} target="_blank" rel="noreferrer" className="text-xs mt-2 italic underline block" style={{ color: "#9C5F5C" }}>
         {t.notSureChat}
       </a>
     </div>
@@ -365,6 +368,7 @@ const DEFAULT_HOME_IMAGES = {
   dresses: "https://picsum.photos/seed/cat-dresses/300/300",
   scarves: "https://picsum.photos/seed/cat-scarves/300/300",
   namaznik: "https://picsum.photos/seed/cat-namaznik/300/300",
+  faq: "https://picsum.photos/seed/faq-info/300/300",
   bannerWinter: "https://picsum.photos/seed/banner-winter/400/300",
   bannerSummer: "https://picsum.photos/seed/banner-summer/400/300",
 };
@@ -375,40 +379,38 @@ function HomeScreen({ t, setScreen, setActiveCategory, setActiveSeason, goAdmin,
     { key: "dresses", label: t.dresses, img: imgs.dresses },
     { key: "scarves", label: t.scarves, img: imgs.scarves },
     { key: "namaznik", label: t.namaznik, img: imgs.namaznik },
+    { key: "faq", label: t.faqTileLabel, img: imgs.faq },
   ];
   return (
     <div className="pb-24">
       <div className="pt-6 pb-3 px-5 text-center">
         <h1 className="font-serif text-3xl tracking-[0.15em]" style={{ color: INK }}>SAFHA</h1>
-        <p className="text-[11px] tracking-wide mt-0.5" style={{ color: `${CHARCOAL}80` }}>{t.tagline}</p>
-      </div>
-      <div className="px-4 mb-2">
-        <button
-          onClick={() => setScreen("faq")}
-          className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl"
-          style={{ background: `${INK}0D` }}
-        >
-          <span className="flex items-center gap-2 text-xs font-medium" style={{ color: INK }}>
-            <HelpCircle size={15} /> {t.faqBanner}
-          </span>
-          <ChevronLeft size={14} style={{ transform: "rotate(180deg)" }} color={INK} />
-        </button>
+        <p className="text-xs tracking-wide mt-0.5" style={{ color: `${CHARCOAL}80` }}>{t.tagline}</p>
       </div>
       <div className="relative h-56 flex items-end p-5" style={{
-        backgroundImage: `linear-gradient(180deg, rgba(58,36,50,0.15), rgba(58,36,50,0.85)), url(${imgs.hero})`,
+        backgroundImage: `linear-gradient(180deg, rgba(31,61,44,0.15), rgba(31,61,44,0.85)), url(${imgs.hero})`,
         backgroundSize: "cover", backgroundPosition: "center",
       }}>
-        <div>
-          <p style={{ color: GOLD }} className="text-xs uppercase tracking-[0.2em] mb-1">{t.newArrivals}</p>
-        </div>
       </div>
       <div className="px-4 mt-5">
-        <h2 className="font-serif text-lg mb-3" style={{ color: CHARCOAL }}>{t.catalog}</h2>
+        <h2 className="font-serif text-xl mb-3" style={{ color: CHARCOAL }}>{t.catalog}</h2>
         <div className="grid grid-cols-3 gap-3">
           {cats.map((c) => (
-            <button key={c.key} onClick={() => { setActiveCategory(c.key); setActiveSeason("all"); setScreen("category"); }} className="flex flex-col items-center gap-2">
+            <button
+              key={c.key}
+              onClick={() => {
+                if (c.key === "faq") {
+                  setScreen("faq");
+                } else {
+                  setActiveCategory(c.key);
+                  setActiveSeason("all");
+                  setScreen("category");
+                }
+              }}
+              className="flex flex-col items-center gap-2"
+            >
               <div className="w-full aspect-square rounded-2xl bg-cover bg-center border border-[#1F3D2C]/10" style={{ backgroundImage: `url(${c.img})` }} />
-              <span className="text-xs font-medium" style={{ color: CHARCOAL }}>{c.label}</span>
+              <span className="font-serif text-base font-semibold" style={{ color: INK }}>{c.label}</span>
             </button>
           ))}
         </div>
@@ -416,21 +418,21 @@ function HomeScreen({ t, setScreen, setActiveCategory, setActiveSeason, goAdmin,
       <div className="px-4 mt-6">
         <div className="flex gap-3">
           <button onClick={() => { setActiveCategory("dresses"); setActiveSeason("winter"); setScreen("category"); }} className="flex-1 rounded-2xl overflow-hidden relative h-28" style={{
-            backgroundImage: `linear-gradient(180deg, rgba(58,36,50,0.1), rgba(58,36,50,0.75)), url(${imgs.bannerWinter})`,
+            backgroundImage: `linear-gradient(180deg, rgba(31,61,44,0.1), rgba(31,61,44,0.75)), url(${imgs.bannerWinter})`,
             backgroundSize: "cover", backgroundPosition: "center",
           }}>
-            <span className="absolute bottom-2 left-3 text-xs font-medium" style={{ color: IVORY }}>{t.seasonWinter}</span>
+            <span className="absolute bottom-2.5 left-3 font-serif text-base font-semibold" style={{ color: IVORY }}>{t.seasonWinter}</span>
           </button>
           <button onClick={() => { setActiveCategory("dresses"); setActiveSeason("summer"); setScreen("category"); }} className="flex-1 rounded-2xl overflow-hidden relative h-28" style={{
-            backgroundImage: `linear-gradient(180deg, rgba(58,36,50,0.1), rgba(58,36,50,0.75)), url(${imgs.bannerSummer})`,
+            backgroundImage: `linear-gradient(180deg, rgba(31,61,44,0.1), rgba(31,61,44,0.75)), url(${imgs.bannerSummer})`,
             backgroundSize: "cover", backgroundPosition: "center",
           }}>
-            <span className="absolute bottom-2 left-3 text-xs font-medium" style={{ color: IVORY }}>{t.seasonSummer}</span>
+            <span className="absolute bottom-2.5 left-3 font-serif text-base font-semibold" style={{ color: IVORY }}>{t.seasonSummer}</span>
           </button>
         </div>
       </div>
       <div className="px-4 mt-8 text-center">
-        <button onClick={goAdmin} className="text-xs inline-flex items-center gap-1.5" style={{ color: `${CHARCOAL}66` }}>
+        <button onClick={goAdmin} className="text-sm inline-flex items-center gap-1.5" style={{ color: `${CHARCOAL}66` }}>
           <Settings size={12} /> {t.forOwners}
         </button>
       </div>
@@ -460,9 +462,9 @@ function CategoryScreen({ t, products, category, season, setSeason, setActiveCat
             { key: "scarves", label: t.scarves },
             { key: "namaznik", label: t.namaznik },
           ].map((c) => (
-            <button key={c.key} onClick={() => setActiveCategory(c.key)} className="px-3.5 py-1.5 rounded-full text-xs whitespace-nowrap border" style={{
+            <button key={c.key} onClick={() => setActiveCategory(c.key)} className="px-3.5 py-1.5 rounded-full text-sm whitespace-nowrap border" style={{
               background: category === c.key ? INK : "transparent", color: category === c.key ? IVORY : `${CHARCOAL}B3`,
-              borderColor: category === c.key ? INK : "rgba(58,36,50,0.2)",
+              borderColor: category === c.key ? INK : "rgba(31,61,44,0.2)",
             }}>
               {c.label}
             </button>
@@ -472,9 +474,9 @@ function CategoryScreen({ t, products, category, season, setSeason, setActiveCat
       {showSeasonFilter && (
         <div className="flex gap-2 px-4 py-3 overflow-x-auto">
           {[{ key: "all", label: t.all }, { key: "winter", label: t.seasonWinter }, { key: "summer", label: t.seasonSummer }].map((s) => (
-            <button key={s.key} onClick={() => setSeason(s.key)} className="px-3.5 py-1.5 rounded-full text-xs whitespace-nowrap border" style={{
+            <button key={s.key} onClick={() => setSeason(s.key)} className="px-3.5 py-1.5 rounded-full text-sm whitespace-nowrap border" style={{
               background: season === s.key ? INK : "transparent", color: season === s.key ? IVORY : `${CHARCOAL}B3`,
-              borderColor: season === s.key ? INK : "rgba(58,36,50,0.2)",
+              borderColor: season === s.key ? INK : "rgba(31,61,44,0.2)",
             }}>
               {s.label}
             </button>
@@ -482,7 +484,7 @@ function CategoryScreen({ t, products, category, season, setSeason, setActiveCat
         </div>
       )}
       {list.length === 0 ? (
-        <p className="text-sm text-center py-16" style={{ color: `${CHARCOAL}66` }}>{t.noProducts}</p>
+        <p className="text-base text-center py-16" style={{ color: `${CHARCOAL}66` }}>{t.noProducts}</p>
       ) : (
         <div className="grid grid-cols-2 gap-3 px-4 mt-1">
           {list.map((p) => {
@@ -511,8 +513,8 @@ function CategoryScreen({ t, products, category, season, setSeason, setActiveCat
                   </button>
                 </div>
                 <button onClick={() => openProduct(p)} className="w-full text-left">
-                  <p className="text-sm font-medium leading-snug" style={{ color: CHARCOAL }}>{p.name}</p>
-                  <p className="text-xs font-medium mt-0.5" style={{ color: GOLD }}>{money(p.price)}</p>
+                  <p className="text-base font-medium leading-snug" style={{ color: CHARCOAL }}>{p.name}</p>
+                  <p className="text-sm font-medium mt-0.5" style={{ color: GOLD }}>{money(p.price)}</p>
                 </button>
               </div>
             );
@@ -606,7 +608,7 @@ function ImageZoomModal({ src, onClose }) {
           userSelect: "none",
         }}
       />
-      <p className="absolute bottom-6 left-0 right-0 text-center text-white/50 text-xs">
+      <p className="absolute bottom-6 left-0 right-0 text-center text-white/50 text-sm">
         Ущипните или дважды нажмите для увеличения / Pinch or double-tap to zoom
       </p>
     </div>
@@ -664,7 +666,7 @@ function ProductScreen({ t, product, setScreen, addToCart, favorites, toggleFavo
         <p className="font-medium mt-1" style={{ color: GOLD }}>{money(product.price)}</p>
 
         <div className="mt-5">
-          <p className="text-sm font-semibold uppercase tracking-wide mb-2" style={{ color: CHARCOAL }}>{t.color}: <span style={{ color: GOLD }}>{color.name}</span></p>
+          <p className="text-base font-semibold uppercase tracking-wide mb-2" style={{ color: CHARCOAL }}>{t.color}: <span style={{ color: GOLD }}>{color.name}</span></p>
           <div className="flex gap-2">
             {product.colors.map((c, i) => (
               <button
@@ -681,12 +683,12 @@ function ProductScreen({ t, product, setScreen, addToCart, favorites, toggleFavo
         </div>
 
         <div className="mt-5">
-          <p className="text-sm font-semibold uppercase tracking-wide mb-2" style={{ color: CHARCOAL }}>{t.size}</p>
+          <p className="text-base font-semibold uppercase tracking-wide mb-2" style={{ color: CHARCOAL }}>{t.size}</p>
           <div className="flex gap-2">
             {sizes.map((s) => (
-              <button key={s} onClick={() => setSize(s)} className="px-4 py-1.5 rounded-full text-sm border" style={{
+              <button key={s} onClick={() => setSize(s)} className="px-4 py-1.5 rounded-full text-base border" style={{
                 background: size === s ? INK : "transparent", color: size === s ? IVORY : CHARCOAL,
-                borderColor: size === s ? INK : "rgba(58,36,50,0.2)",
+                borderColor: size === s ? INK : "rgba(31,61,44,0.2)",
               }}>
                 {s === "freeSize" ? t.freeSize : s}
               </button>
@@ -695,16 +697,16 @@ function ProductScreen({ t, product, setScreen, addToCart, favorites, toggleFavo
         </div>
 
         <div className="mt-5">
-          <p className="text-sm font-semibold uppercase tracking-wide mb-1.5" style={{ color: CHARCOAL }}>{t.fabric}</p>
+          <p className="text-base font-semibold uppercase tracking-wide mb-1.5" style={{ color: CHARCOAL }}>{t.fabric}</p>
           <div className="flex items-center justify-between flex-wrap gap-2">
             <span
-              className="inline-block px-3 py-1.5 rounded-full text-sm font-medium"
+              className="inline-block px-3 py-1.5 rounded-full text-base font-medium"
               style={{ background: `${GOLD}1A`, color: INK }}
             >
               {product.fabric}
             </span>
             {product.fabricDetails && (
-              <button onClick={() => setFabricInfoOpen(true)} className="text-xs font-medium underline" style={{ color: GOLD }}>
+              <button onClick={() => setFabricInfoOpen(true)} className="text-sm font-medium underline" style={{ color: GOLD }}>
                 {t.fabricMore}
               </button>
             )}
@@ -721,7 +723,7 @@ function ProductScreen({ t, product, setScreen, addToCart, favorites, toggleFavo
               <h2 className="font-serif text-lg" style={{ color: CHARCOAL }}>{t.fabric}: {product.fabric}</h2>
               <button onClick={() => setFabricInfoOpen(false)}><X size={20} color={CHARCOAL} /></button>
             </div>
-            <p className="text-sm leading-relaxed" style={{ color: `${CHARCOAL}CC` }}>{product.fabricDetails}</p>
+            <p className="text-base leading-relaxed" style={{ color: `${CHARCOAL}CC` }}>{product.fabricDetails}</p>
           </div>
         </div>
       )}
@@ -744,7 +746,7 @@ function FavoritesScreen({ t, products, favorites, toggleFavorite, openProduct, 
         <div className="flex flex-col items-center justify-center text-center px-8 py-24">
           <Heart size={36} color={INK} strokeWidth={1.3} className="mb-3 opacity-40" />
           <p className="font-serif text-lg" style={{ color: CHARCOAL }}>{t.noFavorites}</p>
-          <p className="text-sm mt-1" style={{ color: `${CHARCOAL}80` }}>{t.noFavoritesSub}</p>
+          <p className="text-base mt-1" style={{ color: `${CHARCOAL}80` }}>{t.noFavoritesSub}</p>
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-3 px-4 mt-3">
@@ -762,8 +764,8 @@ function FavoritesScreen({ t, products, favorites, toggleFavorite, openProduct, 
                 </button>
               </div>
               <button onClick={() => openProduct(p)} className="w-full text-left">
-                <p className="text-sm font-medium leading-snug" style={{ color: CHARCOAL }}>{p.name}</p>
-                <p className="text-xs font-medium mt-0.5" style={{ color: GOLD }}>{money(p.price)}</p>
+                <p className="text-base font-medium leading-snug" style={{ color: CHARCOAL }}>{p.name}</p>
+                <p className="text-sm font-medium mt-0.5" style={{ color: GOLD }}>{money(p.price)}</p>
               </button>
             </div>
           ))}
@@ -813,7 +815,7 @@ function ProfileScreen({ t, tgUser }) {
           <div>
             <p className="font-serif text-lg" style={{ color: CHARCOAL }}>{displayName}</p>
             {tgUser.username && tgUser.first_name && (
-              <p className="text-xs" style={{ color: `${CHARCOAL}70` }}>{tgUser.first_name}</p>
+              <p className="text-sm" style={{ color: `${CHARCOAL}70` }}>{tgUser.first_name}</p>
             )}
           </div>
         </div>
@@ -826,31 +828,31 @@ function ProfileScreen({ t, tgUser }) {
           style={{ background: INK, color: IVORY }}
         >
           <MessageCircle size={17} />
-          <span className="text-sm font-medium">{t.chatWithAdmin}</span>
+          <span className="text-base font-medium">{t.chatWithAdmin}</span>
         </a>
 
         <div className="rounded-2xl p-4 mb-3 border border-black/10">
-          <p className="text-xs uppercase tracking-wide mb-2" style={{ color: `${CHARCOAL}80` }}>{t.myOrders}</p>
+          <p className="text-sm uppercase tracking-wide mb-2" style={{ color: `${CHARCOAL}80` }}>{t.myOrders}</p>
           {loadingOrders ? (
-            <p className="text-sm" style={{ color: `${CHARCOAL}60` }}>...</p>
+            <p className="text-base" style={{ color: `${CHARCOAL}60` }}>...</p>
           ) : orders.length === 0 ? (
-            <p className="text-sm" style={{ color: `${CHARCOAL}90` }}>{t.myOrdersSub}</p>
+            <p className="text-base" style={{ color: `${CHARCOAL}90` }}>{t.myOrdersSub}</p>
           ) : (
             <div className="space-y-3">
               {orders.map((o) => (
                 <div key={o.orderCode} className="border-t border-black/5 pt-3 first:border-t-0 first:pt-0">
                   <div className="flex justify-between items-center mb-1">
-                    <span className="text-sm font-medium" style={{ color: CHARCOAL }}>#{o.orderCode}</span>
-                    <span className="text-xs" style={{ color: `${CHARCOAL}60` }}>
+                    <span className="text-base font-medium" style={{ color: CHARCOAL }}>#{o.orderCode}</span>
+                    <span className="text-sm" style={{ color: `${CHARCOAL}60` }}>
                       {new Date(o.timestamp).toLocaleDateString("ru-RU")}
                     </span>
                   </div>
                   {(o.items || []).map((item, i) => (
-                    <p key={i} className="text-xs" style={{ color: `${CHARCOAL}90` }}>
+                    <p key={i} className="text-sm" style={{ color: `${CHARCOAL}90` }}>
                       {item.name} — {item.colorName}, {item.size === "freeSize" ? "Free size" : item.size}
                     </p>
                   ))}
-                  <p className="text-xs font-medium mt-1" style={{ color: GOLD }}>{o.total}</p>
+                  <p className="text-sm font-medium mt-1" style={{ color: GOLD }}>{o.total}</p>
                 </div>
               ))}
             </div>
@@ -858,8 +860,8 @@ function ProfileScreen({ t, tgUser }) {
         </div>
 
         <div className="rounded-2xl p-4 border border-black/10">
-          <p className="text-xs uppercase tracking-wide mb-2" style={{ color: `${CHARCOAL}80` }}>{t.savedAddress}</p>
-          <p className="text-sm" style={{ color: `${CHARCOAL}90` }}>{lastAddress || t.noSavedAddress}</p>
+          <p className="text-sm uppercase tracking-wide mb-2" style={{ color: `${CHARCOAL}80` }}>{t.savedAddress}</p>
+          <p className="text-base" style={{ color: `${CHARCOAL}90` }}>{lastAddress || t.noSavedAddress}</p>
         </div>
       </div>
     </div>
@@ -871,10 +873,10 @@ function FaqItemRow({ item }) {
   return (
     <div className="border-b border-black/10 py-3">
       <button onClick={() => setOpen(!open)} className="w-full flex items-center justify-between text-left">
-        <span className="text-sm font-medium pr-3" style={{ color: CHARCOAL }}>{item.question}</span>
+        <span className="text-base font-medium pr-3" style={{ color: CHARCOAL }}>{item.question}</span>
         <ChevronLeft size={16} color={CHARCOAL} style={{ transform: open ? "rotate(90deg)" : "rotate(-90deg)", flexShrink: 0 }} />
       </button>
-      {open && <p className="text-sm mt-2 leading-relaxed" style={{ color: `${CHARCOAL}99` }}>{item.answer}</p>}
+      {open && <p className="text-base mt-2 leading-relaxed" style={{ color: `${CHARCOAL}99` }}>{item.answer}</p>}
     </div>
   );
 }
@@ -885,7 +887,7 @@ function FaqScreen({ t, faqItems, setScreen }) {
       <TopBar title={t.faqTitle} onBack={() => setScreen("home")} />
       <div className="px-4 mt-2">
         {faqItems.length === 0 ? (
-          <p className="text-sm text-center py-16" style={{ color: `${CHARCOAL}66` }}>{t.faqEmpty}</p>
+          <p className="text-base text-center py-16" style={{ color: `${CHARCOAL}66` }}>{t.faqEmpty}</p>
         ) : (
           faqItems.map((item) => <FaqItemRow key={item.id} item={item} />)
         )}
@@ -903,7 +905,7 @@ function CartScreen({ t, cart, removeFromCart, setScreen }) {
         <div className="flex flex-col items-center justify-center text-center px-8 py-24">
           <ShoppingBag size={36} color={INK} strokeWidth={1.3} className="mb-3 opacity-40" />
           <p className="font-serif text-lg" style={{ color: CHARCOAL }}>{t.emptyCart}</p>
-          <p className="text-sm mt-1" style={{ color: `${CHARCOAL}80` }}>{t.emptyCartSub}</p>
+          <p className="text-base mt-1" style={{ color: `${CHARCOAL}80` }}>{t.emptyCartSub}</p>
         </div>
       ) : (
         <>
@@ -914,16 +916,16 @@ function CartScreen({ t, cart, removeFromCart, setScreen }) {
                   backgroundImage: item.color.imageUrl ? `url(${item.color.imageUrl})` : undefined, backgroundColor: item.color.hex,
                 }} />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate" style={{ color: CHARCOAL }}>{item.product.name}</p>
-                  <p className="text-xs mt-0.5" style={{ color: `${CHARCOAL}99` }}>{item.color.name} · {item.size === "freeSize" ? t.freeSize : item.size}</p>
-                  <p className="text-sm font-medium mt-1" style={{ color: GOLD }}>{money(item.product.price)}</p>
+                  <p className="text-base font-medium truncate" style={{ color: CHARCOAL }}>{item.product.name}</p>
+                  <p className="text-sm mt-0.5" style={{ color: `${CHARCOAL}99` }}>{item.color.name} · {item.size === "freeSize" ? t.freeSize : item.size}</p>
+                  <p className="text-base font-medium mt-1" style={{ color: GOLD }}>{money(item.product.price)}</p>
                 </div>
                 <button onClick={() => removeFromCart(idx)} className="p-1 self-start"><Trash2 size={16} color="#9C5F5C" /></button>
               </div>
             ))}
           </div>
           <div className="fixed bottom-16 inset-x-0 max-w-md mx-auto px-4 py-3 bg-[#F7F2EA]/95 backdrop-blur border-t border-[#1F3D2C]/10">
-            <div className="flex justify-between text-sm mb-2">
+            <div className="flex justify-between text-base mb-2">
               <span style={{ color: `${CHARCOAL}99` }}>{t.total}</span>
               <span className="font-medium" style={{ color: CHARCOAL }}>{money(total)}</span>
             </div>
@@ -1084,22 +1086,22 @@ function CheckoutScreen({ t, cart, setScreen, clearCart, tgUserId }) {
         <div className="flex gap-2 mb-3">
           <button
             onClick={() => setDeliveryMethod("yandex")}
-            className="flex-1 py-2.5 rounded-xl border text-xs font-medium"
+            className="flex-1 py-2.5 rounded-xl border text-sm font-medium"
             style={{
               background: deliveryMethod === "yandex" ? INK : "transparent",
               color: deliveryMethod === "yandex" ? IVORY : CHARCOAL,
-              borderColor: deliveryMethod === "yandex" ? INK : "rgba(58,36,50,0.2)",
+              borderColor: deliveryMethod === "yandex" ? INK : "rgba(31,61,44,0.2)",
             }}
           >
             Ташкент · Яндекс
           </button>
           <button
             onClick={() => setDeliveryMethod("bts")}
-            className="flex-1 py-2.5 rounded-xl border text-xs font-medium"
+            className="flex-1 py-2.5 rounded-xl border text-sm font-medium"
             style={{
               background: deliveryMethod === "bts" ? INK : "transparent",
               color: deliveryMethod === "bts" ? IVORY : CHARCOAL,
-              borderColor: deliveryMethod === "bts" ? INK : "rgba(58,36,50,0.2)",
+              borderColor: deliveryMethod === "bts" ? INK : "rgba(31,61,44,0.2)",
             }}
           >
             Другой регион · BTS
@@ -1107,23 +1109,23 @@ function CheckoutScreen({ t, cart, setScreen, clearCart, tgUserId }) {
         </div>
 
         {deliveryMethod === "yandex" ? (
-          <p className="text-xs leading-relaxed mb-3" style={{ color: `${CHARCOAL}99` }}>
+          <p className="text-sm leading-relaxed mb-3" style={{ color: `${CHARCOAL}99` }}>
             Доставка курьером Яндекс. Оплата за доставку — наличными курьеру при получении заказа.
           </p>
         ) : (
-          <p className="text-xs leading-relaxed mb-3" style={{ color: `${CHARCOAL}99` }}>
+          <p className="text-sm leading-relaxed mb-3" style={{ color: `${CHARCOAL}99` }}>
             Доставка через BTS. Мы уточним ближайший пункт выдачи после получения заказа.
           </p>
         )}
 
         <div className="flex items-center gap-2 border rounded-xl px-3 py-2.5" style={{
-          borderColor: phone.length > 0 && !phoneValid ? "#9C5F5C" : "rgba(58,36,50,0.2)",
+          borderColor: phone.length > 0 && !phoneValid ? "#9C5F5C" : "rgba(31,61,44,0.2)",
         }}>
           <Phone size={16} color={INK} className="opacity-60" />
-          <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder={t.phonePlaceholder} className="flex-1 bg-transparent text-sm outline-none" style={{ color: CHARCOAL }} />
+          <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder={t.phonePlaceholder} className="flex-1 bg-transparent text-base outline-none" style={{ color: CHARCOAL }} />
         </div>
         {phone.length > 0 && !phoneValid && (
-          <p className="text-[11px] mt-1 mb-1" style={{ color: "#9C5F5C" }}>
+          <p className="text-xs mt-1 mb-1" style={{ color: "#9C5F5C" }}>
             Проверьте номер телефона — не хватает цифр / Check the phone number — looks incomplete
           </p>
         )}
@@ -1135,14 +1137,14 @@ function CheckoutScreen({ t, cart, setScreen, clearCart, tgUserId }) {
             value={address}
             onChange={(e) => setAddress(e.target.value)}
             placeholder="Адрес доставки (улица, дом) / Delivery address"
-            className="flex-1 bg-transparent text-sm outline-none"
+            className="flex-1 bg-transparent text-base outline-none"
             style={{ color: CHARCOAL }}
           />
         </div>
 
         <div className="bg-[#1F3D2C]/[0.04] rounded-xl px-3 py-2.5 flex items-start gap-2">
           <MapPin size={16} color={GOLD} className="flex-shrink-0 mt-0.5" />
-          <p className="text-[11px] leading-relaxed" style={{ color: `${CHARCOAL}99` }}>
+          <p className="text-xs leading-relaxed" style={{ color: `${CHARCOAL}99` }}>
             После нажатия «{t.placeOrder}» откроется чат с нами — там, пожалуйста, дополнительно отправьте вашу геометку через <b>📎 → Локация</b> (так мы сможем сразу передать её в Яндекс или BTS).
           </p>
         </div>
@@ -1150,7 +1152,7 @@ function CheckoutScreen({ t, cart, setScreen, clearCart, tgUserId }) {
 
       <div className="px-4 mt-6">
         <h2 className="font-serif text-base mb-2" style={{ color: CHARCOAL }}>{t.paymentTitle}</h2>
-        <p className="text-xs mb-3 leading-relaxed" style={{ color: `${CHARCOAL}99` }}>{t.paymentSub}</p>
+        <p className="text-sm mb-3 leading-relaxed" style={{ color: `${CHARCOAL}99` }}>{t.paymentSub}</p>
         <button
           type="button"
           onClick={() => {
@@ -1170,12 +1172,12 @@ function CheckoutScreen({ t, cart, setScreen, clearCart, tgUserId }) {
         >
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-[10px] uppercase tracking-wider mb-1" style={{ color: `${IVORY}80` }}>{t.cardNumber}</p>
+              <p className="text-xs uppercase tracking-wider mb-1" style={{ color: `${IVORY}80` }}>{t.cardNumber}</p>
               <p className="font-mono text-lg tracking-wider" style={{ color: IVORY }}>{CARD_NUMBER_DISPLAY}</p>
-              <p className="text-xs mt-1" style={{ color: `${IVORY}90` }}>{CARD_HOLDER_NAME}</p>
+              <p className="text-sm mt-1" style={{ color: `${IVORY}90` }}>{CARD_HOLDER_NAME}</p>
             </div>
             <span
-              className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-full flex-shrink-0"
+              className="flex items-center gap-1.5 text-sm font-semibold px-3 py-2 rounded-full flex-shrink-0"
               style={{
                 background: cardCopied ? "#5C6B4E" : `${IVORY}25`,
                 color: "#fff",
@@ -1191,10 +1193,10 @@ function CheckoutScreen({ t, cart, setScreen, clearCart, tgUserId }) {
         <button
           type="button"
           onClick={() => receiptInputRef.current && receiptInputRef.current.click()}
-          className="w-full flex items-center gap-2 py-3 px-3 rounded-xl border text-sm justify-center"
+          className="w-full flex items-center gap-2 py-3 px-3 rounded-xl border text-base justify-center"
           style={{
             background: receiptUrl ? "rgba(124,140,108,0.1)" : "transparent",
-            borderColor: receiptUrl ? "#7C8C6C" : "rgba(58,36,50,0.2)",
+            borderColor: receiptUrl ? "#7C8C6C" : "rgba(31,61,44,0.2)",
             color: receiptUrl ? "#5C6B4E" : CHARCOAL,
           }}
         >
@@ -1211,19 +1213,19 @@ function CheckoutScreen({ t, cart, setScreen, clearCart, tgUserId }) {
                 onChange={(e) => setLocationAck(e.target.checked)}
                 className="mt-0.5 flex-shrink-0"
               />
-              <span className="text-xs leading-relaxed" style={{ color: CHARCOAL }}>
+              <span className="text-sm leading-relaxed" style={{ color: CHARCOAL }}>
                 Пожалуйста, отправьте свою локацию через Telegram (📎 → Локация) в чате, который откроется после отправки заказа.
               </span>
             </label>
 
-            <label className="flex items-start gap-2.5 mt-2 p-3 rounded-xl cursor-pointer" style={{ background: "rgba(58,36,50,0.04)" }}>
+            <label className="flex items-start gap-2.5 mt-2 p-3 rounded-xl cursor-pointer" style={{ background: "rgba(31,61,44,0.04)" }}>
               <input
                 type="checkbox"
                 checked={policyAck}
                 onChange={(e) => setPolicyAck(e.target.checked)}
                 className="mt-0.5 flex-shrink-0"
               />
-              <span className="text-xs leading-relaxed" style={{ color: CHARCOAL }}>
+              <span className="text-sm leading-relaxed" style={{ color: CHARCOAL }}>
                 Ознакомлен(а) с условиями заказа: оформленный товар не подлежит возврату или обмену на другую модель, цвет или размер.
               </span>
             </label>
@@ -1232,17 +1234,17 @@ function CheckoutScreen({ t, cart, setScreen, clearCart, tgUserId }) {
       </div>
 
       <div className="px-4 mt-6 pb-8">
-        <div className="flex justify-between text-sm mb-2">
+        <div className="flex justify-between text-base mb-2">
           <span style={{ color: `${CHARCOAL}99` }}>{t.total}</span>
           <span className="font-medium" style={{ color: CHARCOAL }}>{money(total)}</span>
         </div>
         <button disabled={!canSubmit} onClick={handleSendOrder} className="w-full py-3 rounded-full font-medium flex items-center justify-center gap-2" style={{
-          background: canSubmit ? GOLD : "rgba(58,36,50,0.15)", color: canSubmit ? "#fff" : "rgba(42,36,32,0.4)",
+          background: canSubmit ? GOLD : "rgba(31,61,44,0.15)", color: canSubmit ? "#fff" : "rgba(42,36,32,0.4)",
         }}>
           <CreditCard size={16} />{submitting ? "Отправка..." : t.placeOrder}
         </button>
         {!canSubmit && (
-          <p className="text-[11px] text-center mt-1.5" style={{ color: "#9C5F5C" }}>
+          <p className="text-xs text-center mt-1.5" style={{ color: "#9C5F5C" }}>
             Укажите телефон, адрес, прикрепите чек и подтвердите оба пункта ниже / Fill in phone, address, receipt, and confirm both checkboxes above
           </p>
         )}
@@ -1258,8 +1260,8 @@ function ConfirmationScreen({ t, setScreen }) {
         <Check size={30} color="#5C6B4E" />
       </div>
       <h1 className="font-serif text-xl mb-2" style={{ color: CHARCOAL }}>{t.orderSentTitle}</h1>
-      <p className="text-sm leading-relaxed mb-8" style={{ color: `${CHARCOAL}99` }}>{t.orderSentSub}</p>
-      <button onClick={() => setScreen("home")} className="px-6 py-3 rounded-full text-sm font-medium" style={{ background: INK, color: IVORY }}>{t.backToHome}</button>
+      <p className="text-base leading-relaxed mb-8" style={{ color: `${CHARCOAL}99` }}>{t.orderSentSub}</p>
+      <button onClick={() => setScreen("home")} className="px-6 py-3 rounded-full text-base font-medium" style={{ background: INK, color: IVORY }}>{t.backToHome}</button>
     </div>
   );
 }
@@ -1272,7 +1274,7 @@ function LangScreen({ onPick }) {
         <Globe size={26} color={INK} />
       </div>
       <h1 className="font-serif text-2xl mb-1" style={{ color: IVORY }}>Choose your language</h1>
-      <p className="text-sm mb-8" style={{ color: `${IVORY}80` }}>Modest fashion, made with care</p>
+      <p className="text-base mb-8" style={{ color: `${IVORY}80` }}>Modest fashion, made with care</p>
       <div className="w-full max-w-xs space-y-3">
         {langs.map((l) => (
           <button key={l.code} onClick={() => onPick(l.code)} className="w-full py-3.5 rounded-full border font-medium tracking-wide active:bg-white/10 transition" style={{ borderColor: `${IVORY}40`, color: IVORY }}>
@@ -1352,10 +1354,10 @@ function ColorRow({ color, onChange, onRemove, canRemove }) {
         {color.hex2 !== undefined && (
           <input type="color" value={color.hex2} onChange={(e) => onChange({ ...color, hex2: e.target.value })} className="w-9 h-9 rounded-lg border border-black/10 cursor-pointer flex-shrink-0" />
         )}
-        <input placeholder="Название цвета" value={color.name} onChange={(e) => onChange({ ...color, name: e.target.value })} className="flex-1 min-w-0 border border-black/15 rounded-lg px-2.5 py-2 text-sm" />
+        <input placeholder="Название цвета" value={color.name} onChange={(e) => onChange({ ...color, name: e.target.value })} className="flex-1 min-w-0 border border-black/15 rounded-lg px-2.5 py-2 text-base" />
         {canRemove && <button onClick={onRemove} className="p-1.5 flex-shrink-0"><Trash2 size={16} color="#9C5F5C" /></button>}
       </div>
-      <label className="flex items-center gap-1.5 text-xs mb-2" style={{ color: `${CHARCOAL}99` }}>
+      <label className="flex items-center gap-1.5 text-sm mb-2" style={{ color: `${CHARCOAL}99` }}>
         <input
           type="checkbox"
           checked={color.hex2 !== undefined}
@@ -1368,14 +1370,14 @@ function ColorRow({ color, onChange, onRemove, canRemove }) {
       <button
         type="button"
         onClick={() => photoInputRef.current && photoInputRef.current.click()}
-        className="w-full border border-black/15 rounded-lg px-2.5 py-2 text-sm flex items-center gap-1.5 bg-white mb-1.5"
+        className="w-full border border-black/15 rounded-lg px-2.5 py-2 text-base flex items-center gap-1.5 bg-white mb-1.5"
       >
         {color.imageUrl ? (
           <img src={color.imageUrl} alt="" className="w-6 h-6 rounded object-cover flex-shrink-0" />
         ) : (
           <Upload size={14} className="flex-shrink-0 opacity-50" />
         )}
-        <span className="truncate text-xs" style={{ color: color.imageUrl ? CHARCOAL : "rgba(0,0,0,0.4)" }}>
+        <span className="truncate text-sm" style={{ color: color.imageUrl ? CHARCOAL : "rgba(0,0,0,0.4)" }}>
           {uploading ? "Загрузка..." : color.imageUrl ? "Фото загружено (нажмите, чтобы заменить)" : "Выбрать фото"}
         </span>
       </button>
@@ -1384,10 +1386,10 @@ function ColorRow({ color, onChange, onRemove, canRemove }) {
       <button
         type="button"
         onClick={() => videoInputRef.current && videoInputRef.current.click()}
-        className="w-full border border-black/15 rounded-lg px-2.5 py-2 text-sm flex items-center gap-1.5 bg-white"
+        className="w-full border border-black/15 rounded-lg px-2.5 py-2 text-base flex items-center gap-1.5 bg-white"
       >
         <Play size={14} className="flex-shrink-0 opacity-50" />
-        <span className="truncate text-xs" style={{ color: color.videoUrl ? CHARCOAL : "rgba(0,0,0,0.4)" }}>
+        <span className="truncate text-sm" style={{ color: color.videoUrl ? CHARCOAL : "rgba(0,0,0,0.4)" }}>
           {uploadingVideo ? "Загрузка..." : color.videoUrl ? "Видео загружено (нажмите, чтобы заменить)" : "Добавить видео (необязательно)"}
         </span>
       </button>
@@ -1442,66 +1444,66 @@ function ProductForm({ initial, onCancel, onSaved, showToast }) {
           <h2 className="font-serif text-lg" style={{ color: CHARCOAL }}>{initial.name ? "Редактировать" : "Новый товар"}</h2>
           <button onClick={onCancel}><X size={20} color={CHARCOAL} /></button>
         </div>
-        <label className="block text-xs uppercase tracking-wide text-black/50 mb-1">Название модели</label>
-        <input value={p.name} onChange={(e) => update({ name: e.target.value })} placeholder="Например: Модель Амира" className="w-full border border-black/15 rounded-xl px-3 py-2.5 text-sm mb-4" />
+        <label className="block text-sm uppercase tracking-wide text-black/50 mb-1">Название модели</label>
+        <input value={p.name} onChange={(e) => update({ name: e.target.value })} placeholder="Например: Модель Амира" className="w-full border border-black/15 rounded-xl px-3 py-2.5 text-base mb-4" />
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div>
-            <label className="block text-xs uppercase tracking-wide text-black/50 mb-1">Категория</label>
-            <select value={p.category} onChange={(e) => update({ category: e.target.value })} className="w-full border border-black/15 rounded-xl px-3 py-2.5 text-sm bg-white">
+            <label className="block text-sm uppercase tracking-wide text-black/50 mb-1">Категория</label>
+            <select value={p.category} onChange={(e) => update({ category: e.target.value })} className="w-full border border-black/15 rounded-xl px-3 py-2.5 text-base bg-white">
               {CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
             </select>
           </div>
           <div>
-            <label className="block text-xs uppercase tracking-wide text-black/50 mb-1">Сезон</label>
-            <select value={p.season} onChange={(e) => update({ season: e.target.value })} className="w-full border border-black/15 rounded-xl px-3 py-2.5 text-sm bg-white">
+            <label className="block text-sm uppercase tracking-wide text-black/50 mb-1">Сезон</label>
+            <select value={p.season} onChange={(e) => update({ season: e.target.value })} className="w-full border border-black/15 rounded-xl px-3 py-2.5 text-base bg-white">
               {SEASONS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
             </select>
           </div>
         </div>
-        <label className="block text-xs uppercase tracking-wide text-black/50 mb-1">Цена (сум)</label>
-        <input type="number" value={p.price} onChange={(e) => update({ price: e.target.value })} placeholder="350000" className="w-full border border-black/15 rounded-xl px-3 py-2.5 text-sm mb-4" />
-        <label className="block text-xs uppercase tracking-wide text-black/50 mb-1">Ткань (короткое название)</label>
-        <input value={p.fabric} onChange={(e) => update({ fabric: e.target.value })} placeholder="Например: плотный трикотаж, 95% хлопок" className="w-full border border-black/15 rounded-xl px-3 py-2.5 text-sm mb-4" />
-        <label className="block text-xs uppercase tracking-wide text-black/50 mb-1">Подробнее о ткани (для кнопки «Подробнее»)</label>
+        <label className="block text-sm uppercase tracking-wide text-black/50 mb-1">Цена (сум)</label>
+        <input type="number" value={p.price} onChange={(e) => update({ price: e.target.value })} placeholder="350000" className="w-full border border-black/15 rounded-xl px-3 py-2.5 text-base mb-4" />
+        <label className="block text-sm uppercase tracking-wide text-black/50 mb-1">Ткань (короткое название)</label>
+        <input value={p.fabric} onChange={(e) => update({ fabric: e.target.value })} placeholder="Например: плотный трикотаж, 95% хлопок" className="w-full border border-black/15 rounded-xl px-3 py-2.5 text-base mb-4" />
+        <label className="block text-sm uppercase tracking-wide text-black/50 mb-1">Подробнее о ткани (для кнопки «Подробнее»)</label>
         <textarea
           value={p.fabricDetails || ""}
           onChange={(e) => update({ fabricDetails: e.target.value })}
           rows={4}
           placeholder="Например: 100% натуральный хлопок, дышащая ткань, не требует глажки, подходит для жаркого климата..."
-          className="w-full border border-black/15 rounded-xl px-3 py-2.5 text-sm mb-4"
+          className="w-full border border-black/15 rounded-xl px-3 py-2.5 text-base mb-4"
         />
         <div className="mb-4">
-          <label className="flex items-center gap-2 text-sm mb-2">
+          <label className="flex items-center gap-2 text-base mb-2">
             <input type="checkbox" checked={p.freeSize} onChange={(e) => update({ freeSize: e.target.checked })} />
             Свободный размер
           </label>
           {!p.freeSize && (
-            <input value={p.customSizes} onChange={(e) => update({ customSizes: e.target.value })} placeholder="S, M, L (через запятую)" className="w-full border border-black/15 rounded-xl px-3 py-2.5 text-sm" />
+            <input value={p.customSizes} onChange={(e) => update({ customSizes: e.target.value })} placeholder="S, M, L (через запятую)" className="w-full border border-black/15 rounded-xl px-3 py-2.5 text-base" />
           )}
         </div>
         <div className="mb-4 bg-black/[0.03] rounded-2xl p-3.5">
-          <label className="flex items-center gap-2 text-sm mb-3">
+          <label className="flex items-center gap-2 text-base mb-3">
             <input type="checkbox" checked={p.hasFit} onChange={(e) => update({ hasFit: e.target.checked })} />
             Указать параметры посадки (рекомендуется)
           </label>
           {p.hasFit && (
             <div className="grid grid-cols-3 gap-2">
-              <div><label className="block text-[10px] text-black/50 mb-1">Рост от, см</label><input type="number" value={p.minHeight} onChange={(e) => update({ minHeight: Number(e.target.value) })} className="w-full border border-black/15 rounded-lg px-2 py-1.5 text-sm" /></div>
-              <div><label className="block text-[10px] text-black/50 mb-1">Рост до, см</label><input type="number" value={p.maxHeight} onChange={(e) => update({ maxHeight: Number(e.target.value) })} className="w-full border border-black/15 rounded-lg px-2 py-1.5 text-sm" /></div>
-              <div><label className="block text-[10px] text-black/50 mb-1">Вес до, кг</label><input type="number" value={p.maxWeight} onChange={(e) => update({ maxWeight: Number(e.target.value) })} className="w-full border border-black/15 rounded-lg px-2 py-1.5 text-sm" /></div>
+              <div><label className="block text-xs text-black/50 mb-1">Рост от, см</label><input type="number" value={p.minHeight} onChange={(e) => update({ minHeight: Number(e.target.value) })} className="w-full border border-black/15 rounded-lg px-2 py-1.5 text-base" /></div>
+              <div><label className="block text-xs text-black/50 mb-1">Рост до, см</label><input type="number" value={p.maxHeight} onChange={(e) => update({ maxHeight: Number(e.target.value) })} className="w-full border border-black/15 rounded-lg px-2 py-1.5 text-base" /></div>
+              <div><label className="block text-xs text-black/50 mb-1">Вес до, кг</label><input type="number" value={p.maxWeight} onChange={(e) => update({ maxWeight: Number(e.target.value) })} className="w-full border border-black/15 rounded-lg px-2 py-1.5 text-base" /></div>
             </div>
           )}
         </div>
-        <label className="block text-xs uppercase tracking-wide text-black/50 mb-2">Цвета и фото</label>
+        <label className="block text-sm uppercase tracking-wide text-black/50 mb-2">Цвета и фото</label>
         {p.colors.map((c, i) => <ColorRow key={i} color={c} onChange={(val) => updateColor(i, val)} onRemove={() => removeColor(i)} canRemove={p.colors.length > 1} />)}
-        <button onClick={addColor} className="flex items-center gap-1 text-sm mb-4" style={{ color: GOLD }}><Plus size={15} /> Добавить цвет</button>
-        <label className="flex items-center gap-2 text-sm mb-5">
+        <button onClick={addColor} className="flex items-center gap-1 text-base mb-4" style={{ color: GOLD }}><Plus size={15} /> Добавить цвет</button>
+        <label className="flex items-center gap-2 text-base mb-5">
           <input type="checkbox" checked={p.inStock} onChange={(e) => update({ inStock: e.target.checked })} />
           В наличии
         </label>
         <div className="flex gap-2">
-          <button onClick={onCancel} className="flex-1 py-3 rounded-full border border-black/15 text-sm font-medium" style={{ color: CHARCOAL }}>Отмена</button>
-          <button onClick={handleSave} disabled={saving} className="flex-1 py-3 rounded-full text-sm font-medium text-white flex items-center justify-center gap-2" style={{ background: GOLD, opacity: saving ? 0.6 : 1 }}>
+          <button onClick={onCancel} className="flex-1 py-3 rounded-full border border-black/15 text-base font-medium" style={{ color: CHARCOAL }}>Отмена</button>
+          <button onClick={handleSave} disabled={saving} className="flex-1 py-3 rounded-full text-base font-medium text-white flex items-center justify-center gap-2" style={{ background: GOLD, opacity: saving ? 0.6 : 1 }}>
             <Save size={15} />{saving ? "Сохранение..." : "Сохранить"}
           </button>
         </div>
@@ -1540,14 +1542,14 @@ function ThemeImageRow({ label, value, onUploaded }) {
   return (
     <div className="flex items-center gap-3 bg-white/70 rounded-2xl p-3 border border-black/5 mb-2">
       <div className="w-14 h-14 rounded-xl flex-shrink-0 bg-cover bg-center border border-black/10" style={{ backgroundImage: value ? `url(${value})` : undefined, backgroundColor: "#eee" }} />
-      <label className="flex-1 border border-black/15 rounded-lg px-2.5 py-2 text-sm flex items-center gap-1.5 cursor-pointer bg-white">
+      <label className="flex-1 border border-black/15 rounded-lg px-2.5 py-2 text-base flex items-center gap-1.5 cursor-pointer bg-white">
         <Upload size={14} className="flex-shrink-0 opacity-50" />
-        <span className="truncate text-xs" style={{ color: CHARCOAL }}>
+        <span className="truncate text-sm" style={{ color: CHARCOAL }}>
           {uploading ? "Загрузка..." : "Изменить фото"}
         </span>
         <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
       </label>
-      <span className="text-xs w-20 flex-shrink-0" style={{ color: `${CHARCOAL}80` }}>{label}</span>
+      <span className="text-sm w-20 flex-shrink-0" style={{ color: `${CHARCOAL}80` }}>{label}</span>
     </div>
   );
 }
@@ -1593,51 +1595,51 @@ function FaqAdminPanel({ faqItems, saveFaqItems, showToast }) {
 
   return (
     <div className="px-5 pb-10">
-      <p className="text-xs mb-3" style={{ color: `${CHARCOAL}80` }}>
+      <p className="text-sm mb-3" style={{ color: `${CHARCOAL}80` }}>
         Вопросы и информация о тканях, видимые на главной странице покупателям.
       </p>
 
       {editingIdx !== null ? (
         <div className="bg-white/70 rounded-2xl p-4 border border-black/5 mb-3">
-          <label className="block text-xs uppercase tracking-wide text-black/50 mb-1">Вопрос</label>
+          <label className="block text-sm uppercase tracking-wide text-black/50 mb-1">Вопрос</label>
           <input
             value={draftQ}
             onChange={(e) => setDraftQ(e.target.value)}
             placeholder="Например: Из какой ткани сделаны платья?"
-            className="w-full border border-black/15 rounded-xl px-3 py-2.5 text-sm mb-3"
+            className="w-full border border-black/15 rounded-xl px-3 py-2.5 text-base mb-3"
           />
-          <label className="block text-xs uppercase tracking-wide text-black/50 mb-1">Ответ</label>
+          <label className="block text-sm uppercase tracking-wide text-black/50 mb-1">Ответ</label>
           <textarea
             value={draftA}
             onChange={(e) => setDraftA(e.target.value)}
             rows={4}
             placeholder="Подробный ответ..."
-            className="w-full border border-black/15 rounded-xl px-3 py-2.5 text-sm mb-3"
+            className="w-full border border-black/15 rounded-xl px-3 py-2.5 text-base mb-3"
           />
           <div className="flex gap-2">
-            <button onClick={() => setEditingIdx(null)} className="flex-1 py-2.5 rounded-full border border-black/15 text-sm font-medium" style={{ color: CHARCOAL }}>
+            <button onClick={() => setEditingIdx(null)} className="flex-1 py-2.5 rounded-full border border-black/15 text-base font-medium" style={{ color: CHARCOAL }}>
               Отмена
             </button>
-            <button onClick={handleSave} className="flex-1 py-2.5 rounded-full text-sm font-medium text-white" style={{ background: GOLD }}>
+            <button onClick={handleSave} className="flex-1 py-2.5 rounded-full text-base font-medium text-white" style={{ background: GOLD }}>
               Сохранить
             </button>
           </div>
         </div>
       ) : (
-        <button onClick={startNew} className="flex items-center gap-1.5 text-sm mb-4" style={{ color: GOLD }}>
+        <button onClick={startNew} className="flex items-center gap-1.5 text-base mb-4" style={{ color: GOLD }}>
           <Plus size={16} /> Добавить вопрос
         </button>
       )}
 
       {faqItems.length === 0 ? (
-        <p className="text-sm text-black/50">Пока нет вопросов</p>
+        <p className="text-base text-black/50">Пока нет вопросов</p>
       ) : (
         <div className="space-y-2">
           {faqItems.map((item, idx) => (
             <div key={item.id} className="flex items-start gap-2 bg-white/70 rounded-2xl p-3 border border-black/5">
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium" style={{ color: CHARCOAL }}>{item.question}</p>
-                <p className="text-xs mt-0.5 line-clamp-2" style={{ color: `${CHARCOAL}80` }}>{item.answer}</p>
+                <p className="text-base font-medium" style={{ color: CHARCOAL }}>{item.question}</p>
+                <p className="text-sm mt-0.5 line-clamp-2" style={{ color: `${CHARCOAL}80` }}>{item.answer}</p>
               </div>
               <button onClick={() => startEdit(idx)} className="p-1.5 flex-shrink-0"><Edit2 size={15} color={INK} /></button>
               <button onClick={() => handleDelete(idx)} className="p-1.5 flex-shrink-0"><Trash2 size={15} color="#9C5F5C" /></button>
@@ -1672,6 +1674,7 @@ function AdminScreen({ t, products, upsertLocal, removeLocal, goShop, showToast,
     { key: "dresses", label: "Платья / Dresses" },
     { key: "scarves", label: "Платки / Scarves" },
     { key: "namaznik", label: "Намазники / Namaznik" },
+    { key: "faq", label: "Фото для «Вопросы» / FAQ tile" },
     { key: "bannerWinter", label: "Баннер осень-зима" },
     { key: "bannerSummer", label: "Баннер весна-лето" },
   ];
@@ -1680,24 +1683,24 @@ function AdminScreen({ t, products, upsertLocal, removeLocal, goShop, showToast,
     <div className="min-h-screen" style={{ background: IVORY }}>
       <div className="sticky top-0 z-10 px-5 py-4 flex items-center justify-between" style={{ background: INK }}>
         <div>
-          <button onClick={goShop} className="text-xs mb-1 block" style={{ color: `${IVORY}90` }}>{t.backToShop}</button>
+          <button onClick={goShop} className="text-sm mb-1 block" style={{ color: `${IVORY}90` }}>{t.backToShop}</button>
           <h1 className="font-serif text-lg" style={{ color: IVORY }}>{t.forOwners}</h1>
         </div>
         {tab === "products" && (
-          <button onClick={() => setEditing(emptyProduct())} className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium text-white" style={{ background: GOLD }}>
+          <button onClick={() => setEditing(emptyProduct())} className="flex items-center gap-1.5 px-4 py-2 rounded-full text-base font-medium text-white" style={{ background: GOLD }}>
             <Plus size={16} /> Добавить
           </button>
         )}
       </div>
 
       <div className="flex gap-2 px-5 py-3">
-        <button onClick={() => setTab("products")} className="px-4 py-1.5 rounded-full text-xs font-medium border" style={{
+        <button onClick={() => setTab("products")} className="px-4 py-1.5 rounded-full text-sm font-medium border" style={{
           background: tab === "products" ? INK : "transparent", color: tab === "products" ? IVORY : CHARCOAL, borderColor: tab === "products" ? INK : "rgba(0,0,0,0.15)",
         }}>Товары / Products</button>
-        <button onClick={() => setTab("theme")} className="px-4 py-1.5 rounded-full text-xs font-medium border" style={{
+        <button onClick={() => setTab("theme")} className="px-4 py-1.5 rounded-full text-sm font-medium border" style={{
           background: tab === "theme" ? INK : "transparent", color: tab === "theme" ? IVORY : CHARCOAL, borderColor: tab === "theme" ? INK : "rgba(0,0,0,0.15)",
         }}>Оформление / Theme</button>
-        <button onClick={() => setTab("faq")} className="px-4 py-1.5 rounded-full text-xs font-medium border" style={{
+        <button onClick={() => setTab("faq")} className="px-4 py-1.5 rounded-full text-sm font-medium border" style={{
           background: tab === "faq" ? INK : "transparent", color: tab === "faq" ? IVORY : CHARCOAL, borderColor: tab === "faq" ? INK : "rgba(0,0,0,0.15)",
         }}>Вопросы / FAQ</button>
       </div>
@@ -1706,7 +1709,7 @@ function AdminScreen({ t, products, upsertLocal, removeLocal, goShop, showToast,
         <FaqAdminPanel faqItems={faqItems} saveFaqItems={saveFaqItems} showToast={showToast} />
       ) : tab === "theme" ? (
         <div className="px-5 pb-10">
-          <p className="text-xs mb-3" style={{ color: `${CHARCOAL}80` }}>
+          <p className="text-sm mb-3" style={{ color: `${CHARCOAL}80` }}>
             Фото на главной странице (баннер, обложки категорий). Изменения появятся сразу после загрузки.
           </p>
           {themeSlots.map((slot) => (
@@ -1722,7 +1725,7 @@ function AdminScreen({ t, products, upsertLocal, removeLocal, goShop, showToast,
         <>
           <div className="flex gap-2 px-5 pb-3 overflow-x-auto">
             {[{ value: "all", label: "Все / All" }, ...CATEGORIES].map((c) => (
-              <button key={c.value} onClick={() => setFilter(c.value)} className="px-3.5 py-1.5 rounded-full text-xs whitespace-nowrap border" style={{
+              <button key={c.value} onClick={() => setFilter(c.value)} className="px-3.5 py-1.5 rounded-full text-sm whitespace-nowrap border" style={{
                 background: filter === c.value ? INK : "transparent", color: filter === c.value ? IVORY : CHARCOAL,
                 borderColor: filter === c.value ? INK : "rgba(0,0,0,0.15)",
               }}>{c.label}</button>
@@ -1732,7 +1735,7 @@ function AdminScreen({ t, products, upsertLocal, removeLocal, goShop, showToast,
             {filtered.length === 0 ? (
               <div className="flex flex-col items-center text-center py-16">
                 <Package size={32} color={INK} strokeWidth={1.3} className="mb-3 opacity-30" />
-                <p className="text-sm text-black/50">Товаров пока нет</p>
+                <p className="text-base text-black/50">Товаров пока нет</p>
               </div>
             ) : (
               <div className="space-y-2 mt-1">
@@ -1743,9 +1746,9 @@ function AdminScreen({ t, products, upsertLocal, removeLocal, goShop, showToast,
                       backgroundColor: p.colors?.[0]?.hex || "#eee",
                     }} />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate" style={{ color: CHARCOAL }}>{p.name}</p>
-                      <p className="text-xs text-black/45">{CATEGORIES.find((c) => c.value === p.category)?.label} · {money(p.price)}</p>
-                      {!p.inStock && <span className="text-[10px] text-white px-1.5 py-0.5 rounded-full" style={{ background: "#9C5F5C" }}>Нет в наличии</span>}
+                      <p className="text-base font-medium truncate" style={{ color: CHARCOAL }}>{p.name}</p>
+                      <p className="text-sm text-black/45">{CATEGORIES.find((c) => c.value === p.category)?.label} · {money(p.price)}</p>
+                      {!p.inStock && <span className="text-xs text-white px-1.5 py-0.5 rounded-full" style={{ background: "#9C5F5C" }}>Нет в наличии</span>}
                     </div>
                     <button onClick={() => setEditing(p)} className="p-2"><Edit2 size={16} color={INK} /></button>
                     <button onClick={() => handleDelete(p.id)} className="p-2"><Trash2 size={16} color="#9C5F5C" /></button>
@@ -1850,7 +1853,7 @@ export default function App() {
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;1,500&display=swap'); .font-serif { font-family: 'Playfair Display', serif; }`}</style>
 
       {loading ? (
-        <p className="text-center py-24 text-sm" style={{ color: `${CHARCOAL}66` }}>Загрузка...</p>
+        <p className="text-center py-24 text-base" style={{ color: `${CHARCOAL}66` }}>Загрузка...</p>
       ) : (
         <>
           {screen === "home" && <HomeScreen t={t} setScreen={setScreen} setActiveCategory={setActiveCategory} setActiveSeason={setActiveSeason} goAdmin={() => setView("admin")} homeImages={homeImages} />}
