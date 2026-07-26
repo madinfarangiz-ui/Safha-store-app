@@ -1,3 +1,4 @@
+
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App.jsx";
@@ -61,12 +62,23 @@ function makeSupabaseBackend() {
     list: function (prefix, shared) {
       if (prefix === undefined) prefix = "";
       if (shared === undefined) shared = true;
-      return fetch(REST_URL + "?select=id", { headers: HEADERS }).then(function (res) {
-        if (!res.ok) throw new Error("list failed: " + res.status);
-        return res.json();
-      }).then(function (rows) {
-        return { keys: rows.map(function (r) { return "product:" + r.id; }), prefix: prefix, shared: shared };
-      });
+      if (prefix.indexOf("product:") === 0 || prefix === "") {
+        return fetch(REST_URL + "?select=id", { headers: HEADERS }).then(function (res) {
+          if (!res.ok) throw new Error("list failed: " + res.status);
+          return res.json();
+        }).then(function (rows) {
+          return { keys: rows.map(function (r) { return "product:" + r.id; }), prefix: prefix, shared: shared };
+        });
+      }
+      // Generic prefix listing against kv_store (e.g. "order:123:" for order history)
+      return fetch(KV_URL + "?key=like." + encodeURIComponent(prefix + "*") + "&select=key", { headers: HEADERS })
+        .then(function (res) {
+          if (!res.ok) throw new Error("list failed: " + res.status);
+          return res.json();
+        })
+        .then(function (rows) {
+          return { keys: rows.map(function (r) { return r.key; }), prefix: prefix, shared: shared };
+        });
     },
 
     get: function (key, shared) {
