@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
   Globe,
@@ -623,11 +624,12 @@ function CheckoutScreen({ t, cart, setScreen, clearCart }) {
   const total = cart.reduce((s, item) => s + Number(item.product.price || 0), 0);
   const [deliveryMethod, setDeliveryMethod] = useState("yandex"); // 'yandex' | 'bts'
   const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
   const [receiptUrl, setReceiptUrl] = useState("");
   const [uploadingReceipt, setUploadingReceipt] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  const canSubmit = phone.trim().length > 5 && !!receiptUrl && !submitting;
+  const canSubmit = phone.trim().length > 5 && address.trim().length > 3 && !!receiptUrl && !submitting;
 
   const handleReceiptChange = (e) => {
     const file = e.target.files && e.target.files[0];
@@ -661,6 +663,7 @@ function CheckoutScreen({ t, cart, setScreen, clearCart }) {
       orderCode,
       total: money(total),
       phone,
+      address,
       deliveryMethod,
       receiptUrl,
       items: cart.map((item) => ({
@@ -683,7 +686,7 @@ function CheckoutScreen({ t, cart, setScreen, clearCart }) {
       if (!data.ok) throw new Error(data.error || "unknown error");
 
       const locationMsg =
-        "Заказ #" + orderCode + " — пожалуйста, отправьте геометку через 📎 → Локация в этом чате.";
+        "Заказ #" + orderCode + " — адрес: " + address + ". Пожалуйста, также отправьте геометку через 📎 → Локация в этом чате.";
       window.open("https://t.me/" + ADMIN_TELEGRAM_USERNAME + "?text=" + encodeURIComponent(locationMsg), "_blank");
 
       clearCart();
@@ -743,10 +746,21 @@ function CheckoutScreen({ t, cart, setScreen, clearCart }) {
           <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder={t.phonePlaceholder} className="flex-1 bg-transparent text-sm outline-none" style={{ color: CHARCOAL }} />
         </div>
 
+        <div className="flex items-center gap-2 border border-[#3A2432]/20 rounded-xl px-3 py-2.5 mb-2">
+          <MapPin size={16} color={INK} className="opacity-60" />
+          <input
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+            placeholder="Адрес доставки (улица, дом) / Delivery address"
+            className="flex-1 bg-transparent text-sm outline-none"
+            style={{ color: CHARCOAL }}
+          />
+        </div>
+
         <div className="bg-[#3A2432]/[0.04] rounded-xl px-3 py-2.5 flex items-start gap-2">
           <MapPin size={16} color={GOLD} className="flex-shrink-0 mt-0.5" />
           <p className="text-[11px] leading-relaxed" style={{ color: `${CHARCOAL}99` }}>
-            После нажатия «{t.placeOrder}» откроется чат с нами — там, пожалуйста, отправьте вашу геометку через <b>📎 → Локация</b> (не ссылку, а именно через встроенную функцию Telegram — так мы сможем сразу передать её в Яндекс или BTS).
+            После нажатия «{t.placeOrder}» откроется чат с нами — там, пожалуйста, дополнительно отправьте вашу геометку через <b>📎 → Локация</b> (так мы сможем сразу передать её в Яндекс или BTS).
           </p>
         </div>
       </div>
