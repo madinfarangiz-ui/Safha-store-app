@@ -1,4 +1,3 @@
-
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     res.status(405).json({ ok: false, error: "Method not allowed" });
@@ -42,19 +41,37 @@ export default async function handler(req, res) {
     if (receiptUrl) photoUrls.push(receiptUrl);
 
     const telegramBase = "https://api.telegram.org/bot" + BOT_TOKEN;
+    let photoWarning = "";
 
-    if (photoUrls.length > 0) {
+    if (photoUrls.length === 1) {
+      // Telegram's sendPhoto is for a single image; sendMediaGroup requires 2+
+      const res1 = await fetch(telegramBase + "/sendPhoto", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chat_id: ADMIN_CHAT_ID, photo: photoUrls[0] }),
+      });
+      if (!res1.ok) {
+        const errText = await res1.text();
+        photoWarning = "\n\n⚠️ Не удалось отправить фото / Photo failed to send:\n" + photoUrls[0] + "\n(" + errText + ")";
+      }
+    } else if (photoUrls.length >= 2) {
       const media = photoUrls.slice(0, 10).map((url) => ({
         type: "photo",
         media: url,
         caption: url === receiptUrl ? "Чек оплаты / Payment receipt" : undefined,
       }));
 
-      await fetch(telegramBase + "/sendMediaGroup", {
+      const resGroup = await fetch(telegramBase + "/sendMediaGroup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ chat_id: ADMIN_CHAT_ID, media }),
       });
+      if (!resGroup.ok) {
+        const errText = await resGroup.text();
+        photoWarning =
+          "\n\n⚠️ Не удалось отправить фото / Photos failed to send:\n" +
+          photoUrls.join("\n") + "\n(" + errText + ")";
+      }
     }
 
     // Always send the full order details as its own plain message.
@@ -63,7 +80,7 @@ export default async function handler(req, res) {
     await fetch(telegramBase + "/sendMessage", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chat_id: ADMIN_CHAT_ID, text: caption }),
+      body: JSON.stringify({ chat_id: ADMIN_CHAT_ID, text: caption + photoWarning }),
     });
 
     res.status(200).json({ ok: true });
