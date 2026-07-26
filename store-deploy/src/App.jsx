@@ -627,6 +627,7 @@ function CheckoutScreen({ t, cart, setScreen, clearCart }) {
   const [receiptUrl, setReceiptUrl] = useState("");
   const [uploadingReceipt, setUploadingReceipt] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const receiptInputRef = useRef(null);
 
   const canSubmit = phone.trim().length > 5 && address.trim().length > 3 && !!receiptUrl && !submitting;
 
@@ -799,18 +800,23 @@ function CheckoutScreen({ t, cart, setScreen, clearCart }) {
           <p className="text-xs mt-1" style={{ color: `${IVORY}90` }}>{CARD_HOLDER_NAME}</p>
         </div>
 
-        <label className="w-full flex items-center gap-2 py-3 px-3 rounded-xl border text-sm justify-center cursor-pointer" style={{
-          background: receiptUrl ? "rgba(124,140,108,0.1)" : "transparent",
-          borderColor: receiptUrl ? "#7C8C6C" : "rgba(58,36,50,0.2)",
-          color: receiptUrl ? "#5C6B4E" : CHARCOAL,
-        }}>
+        <input ref={receiptInputRef} type="file" accept="image/*" onChange={handleReceiptChange} className="hidden" />
+        <button
+          type="button"
+          onClick={() => receiptInputRef.current && receiptInputRef.current.click()}
+          className="w-full flex items-center gap-2 py-3 px-3 rounded-xl border text-sm justify-center"
+          style={{
+            background: receiptUrl ? "rgba(124,140,108,0.1)" : "transparent",
+            borderColor: receiptUrl ? "#7C8C6C" : "rgba(58,36,50,0.2)",
+            color: receiptUrl ? "#5C6B4E" : CHARCOAL,
+          }}
+        >
           {receiptUrl ? <Check size={16} /> : <Upload size={16} />}
           {uploadingReceipt ? "Загрузка..." : receiptUrl ? "Чек загружен" : "Прикрепить чек оплаты (обязательно)"}
-          <input type="file" accept="image/*" onChange={handleReceiptChange} className="hidden" />
-        </label>
+        </button>
       </div>
 
-      <div className="fixed bottom-16 inset-x-0 max-w-md mx-auto px-4 py-3 bg-[#F7F2EA]/95 backdrop-blur border-t border-[#3A2432]/10">
+      <div className="px-4 mt-6 pb-8">
         <div className="flex justify-between text-sm mb-2">
           <span style={{ color: `${CHARCOAL}99` }}>{t.total}</span>
           <span className="font-medium" style={{ color: CHARCOAL }}>{money(total)}</span>
